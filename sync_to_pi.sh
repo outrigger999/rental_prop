@@ -308,6 +308,10 @@ else
             print_message "Reloading systemd daemon..."
             sudo systemctl daemon-reload || { print_error "Failed to reload systemd daemon!"; exit 1; }
             print_message "Systemd daemon reloaded."
+            
+            print_message "Enabling service '$SERVICE_NAME'..."
+            sudo systemctl enable "$SERVICE_NAME" || { print_error "Failed to enable service!"; exit 1; }
+            print_message "Service enabled."
         fi
 
         print_message "Restarting service '$SERVICE_NAME'..."
