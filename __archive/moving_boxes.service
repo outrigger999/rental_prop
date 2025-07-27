@@ -1,0 +1,14 @@
+[Unit]
+Description=Moving Boxes Tracking System
+After=network.target
+
+[Service]
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/moving-box-tracker
+Environment="PATH=/home/pi/moving-box-tracker/venv/bin"
+ExecStart=/home/pi/moving-box-tracker/venv/bin/python simplified_app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

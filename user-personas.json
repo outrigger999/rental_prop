@@ -1,0 +1,56 @@
+{
+  "primary_personas": [
+    {
+      "name": "Rental Seeker (User)",
+      "role": "Individual searching for a rental property in Seattle",
+      "demographics": {
+        "experience_level": "Tech-savvy, comfortable with web applications",
+        "company_size": "N/A",
+        "industry": "N/A"
+      },
+      "goals": [
+        "Find a suitable rental property quickly and efficiently.",
+        "Keep track of multiple properties, their details, and associated images.",
+        "Evaluate properties based on specific criteria, including commute times.",
+        "Avoid missing out on good properties due to disorganization."
+      ],
+      "pain_points": [
+        "Overwhelmed by the number of listings and scattered information.",
+        "Difficulty comparing properties side-by-side with custom criteria.",
+        "Losing track of property details or images from various sources.",
+        "Inaccurate or outdated commute time information."
+      ],
+      "behavior_patterns": {
+        "preferred_communication": "Direct, clear, visual information.",
+        "decision_making_process": "Data-driven, comparative analysis.",
+        "technology_comfort": "High, willing to use custom tools."
+      },
+      "success_metrics": [
+        "Successfully finding and securing a rental property.",
+        "Reduced time spent on property tracking and organization.",
+        "Feeling confident in property evaluation decisions."
+      ]
+    }
+  ],
+  "secondary_personas": [
+    {
+      "name": "Housemate/Partner",
+      "role": "Collaborator in the rental search process",
+      "relationship_to_primary": "Shares the goal of finding a rental, provides input and feedback.",
+      "influence_level": "High (joint decision-making)",
+      "key_concerns": [
+        "Clarity and accessibility of property information.",
+        "Ability to easily review properties and provide feedback.",
+        "Understanding commute implications for their own needs."
+      ]
+    }
+  ],
+  "user_journey_stages": {
+    "awareness": "Realizes need for a structured property tracking system.",
+    "consideration": "Evaluates existing tools vs. building a custom solution.",
+    "decision": "Decides to use the Rental Property Tracker.",
+    "onboarding": "Sets up the application and understands basic data entry.",
+    "adoption": "Regularly uses the application to track properties.",
+    "advocacy": "Recommends the tool to others (if applicable, or simply finds it indispensable)."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "tech_stack": {
+    "frontend": {
+      "framework": "HTML/CSS/JavaScript (Jinja2 templates)",
+      "language": "HTML, CSS, JavaScript",
+      "styling": "Custom CSS",
+      "build_tool": "N/A (simple static files)"
+    },
+    "backend": {
+      "language": "Python",
+      "framework": "Flask",
+      "database": "SQLite",
+      "orm": "N/A (direct SQLite operations or basic ORM if needed)"
+    },
+    "infrastructure": {
+      "cloud_provider": "Local (Raspberry Pi 4)",
+      "deployment": "Manual sync via Git (app to sync from GitHub to RPi4)",
+      "ci_cd": "N/A (personal project)",
+      "monitoring": "N/A (basic logging)"
+    }
+  },
+  "architecture_patterns": [
+    "Client-Server",
+    "MVC (Model-View-Controller, implied by Flask structure)",
+    "SQLite as embedded database"
+  ],
+  "key_integrations": [
+    {
+      "service": "Google Maps API",
+      "purpose": "Generate route images for commute analysis",
+      "criticality": "Medium (manual image upload is fallback)"
+    }
+  ],
+  "development_practices": {
+    "version_control": "Git (GitHub)",
+    "code_review_process": "N/A (personal project)",
+    "testing_strategy": "Manual testing",
+    "documentation_standards": "Markdown files for project context (Memory Bank)"
+  },
+  "security_considerations": [
+    "Input validation to prevent SQL injection",
+    "Secure handling of image uploads (prevent malicious file types)",
+    "Access control (since it's internal network, less critical, but good practice)"
+  ]
+}

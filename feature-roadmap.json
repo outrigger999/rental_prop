@@ -1,0 +1,78 @@
+{
+  "current_version": "0.1.0-alpha",
+  "development_phases": {
+    "phase_1_mvp": {
+      "timeline": "1-2 weeks",
+      "status": "In Progress",
+      "core_features": [
+        "Basic property data entry (Type, Address, Price, SQ FT, Bedrooms)",
+        "Cat Friendly checkbox",
+        "Air conditioning checkbox",
+        "Type of Parking (Off Street/On Street) selection",
+        "SQLite database integration for property storage",
+        "Basic web interface for adding and viewing properties"
+      ],
+      "success_criteria": [
+        "User can successfully add new properties with all specified fields.",
+        "Property data is persistently stored and retrievable from the database.",
+        "Basic property list view is functional."
+      ]
+    },
+    "phase_2_growth": {
+      "timeline": "3-4 weeks",
+      "status": "Planned",
+      "features": [
+        "Image upload and display for properties (Front, Back, Parking, Satellite, Route)",
+        "Peak traffic driving distance input (Morning, Midday, Evening) with text and image support",
+        "Google Maps integration for route images",
+        "Search and filter functionality for properties",
+        "Edit and delete property functionality"
+      ],
+      "user_impact": "Enhanced property evaluation and decision-making through visual and commute data."
+    },
+    "phase_3_scale": {
+      "timeline": "Future",
+      "focus_areas": [
+        "User authentication and multi-user support (if needed)",
+        "Advanced reporting and analytics",
+        "Mobile responsiveness improvements"
+      ]
+    }
+  },
+  "feature_prioritization": {
+    "high_priority": [
+      {
+        "feature": "Basic property data entry and storage",
+        "business_value": "High",
+        "effort_estimate": "Medium"
+      },
+      {
+        "feature": "Web interface for adding/viewing",
+        "business_value": "High",
+        "effort_estimate": "Medium"
+      }
+    ],
+    "medium_priority": [
+      {
+        "feature": "Image upload and display",
+        "business_value": "Medium",
+        "effort_estimate": "High"
+      },
+      {
+        "feature": "Commute time tracking and display",
+        "business_value": "Medium",
+        "effort_estimate": "High"
+      }
+    ],
+    "future_considerations": [
+      "Automated property data scraping",
+      "Integration with rental listing APIs",
+      "Notification system for new listings"
+    ]
+  },
+  "technical_debt_priorities": [
+    "Refactor Flask routes for better organization",
+    "Improve error handling and logging",
+    "Optimize database queries for performance"
+  ]
+}

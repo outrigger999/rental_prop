@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Search Boxes</h2>
+
+        <!-- Description Search Form -->
+        <form id="descriptionSearchForm" class="mb-4 p-3 border rounded bg-light">
+            <h5 class="mb-3">Search by Description</h5>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description Contains</label>
+                <input type="text" class="form-control" id="description" name="description">
+            </div>
+            <button type="submit" class="btn btn-primary me-2">Search Description</button>
+            <button type="button" id="clearDescriptionBtn" class="btn btn-secondary">Clear Description</button>
+        </form>
+
+        <!-- Attribute Search Form -->
+        <form id="attributeSearchForm" class="mb-4 p-3 border rounded">
+            <h5 class="mb-3">Search by Attributes</h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="box_number" class="form-label">Box Number</label>
+                    <input type="number" class="form-control" id="box_number" name="box_number">
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select class="form-select" id="priority" name="priority">
+                        <option value="">Any Priority</option>
+                        <option value="Priority 1">Priority 1</option>
+                        <option value="Priority 2">Priority 2</option>
+                        <option value="Important">Important</option>
+                        <option value="Store">Store</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+    <option value="">Any Category</option>
+    <!-- Categories will be dynamically inserted here -->
+</select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="box_size" class="form-label">Box Size</label>
+                    <select class="form-select" id="box_size" name="box_size">
+                        <option value="">Any Size</option>
+                        <option value="Small">Small</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Large">Large</option>
+                        <option value="Extra Large">Extra Large</option>
+                    </select>
+                </div>
+
+                <div class="col-12 mt-3">
+                    <button type="submit" class="btn btn-primary me-2">Search Attributes</button>
+                    <button type="button" id="clearAttributesBtn" class="btn btn-secondary">Clear Attributes</button>
+                </div>
+            </div>
+        </form>
+
+        <div id="searchResults">
+            <!-- Search results will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const descriptionSearchForm = document.getElementById('descriptionSearchForm');
+    const attributeSearchForm = document.getElementById('attributeSearchForm');
+    const searchResults = document.getElementById('searchResults');
+    const clearDescriptionBtn = document.getElementById('clearDescriptionBtn');
+    const clearAttributesBtn = document.getElementById('clearAttributesBtn');
+    
+    // Function to handle search submission
+    async function handleSearch(event, formElement) {
+        event.preventDefault();  // Prevent the default form submission
+        
+        // Collect form values
+        const formData = new FormData(formElement);
+        const params = new URLSearchParams();
+        
+        // Only add parameters that have values
+        for (const [key, value] of formData.entries()) {
+            if (value) {
+                params.append(key, value);
+            }
+        }
+        
+        // Show loading indicator
+        searchResults.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        
+        try {
+            const response = await fetch(`/api/boxes?${params.toString()}`);
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            
+            const boxes = await response.json();
+            displaySearchResults(boxes);
+            
+            // Auto-scroll to results on mobile devices
+            if (window.innerWidth < 768) {
+                // Small delay to ensure results are fully rendered
+                setTimeout(() => {
+                    const searchResultsElement = document.getElementById('searchResults');
+                    if (searchResultsElement) {
+                        const resultsTop = searchResultsElement.getBoundingClientRect().top + window.scrollY;
+                        
+                        window.scrollTo({
+                            top: resultsTop - 20, // Small offset for better visual spacing
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 100);
+            }
+        } catch (error) {
+            searchResults.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        }
+    }
+    
+    // Attach submit listeners to both forms
+    descriptionSearchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleSearch(e, descriptionSearchForm);
+    });
+    attributeSearchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleSearch(e, attributeSearchForm);
+    });
+    
+    // Handle Clear Description Button
+    clearDescriptionBtn.addEventListener('click', function() {
+        document.getElementById('description').value = '';
+        searchResults.innerHTML = ''; // Optionally clear results
+    });
+    
+    // Handle Clear Attributes Button
+    clearAttributesBtn.addEventListener('click', function() {
+        document.getElementById('box_number').value = '';
+        document.getElementById('priority').value = '';
+        document.getElementById('category').value = '';
+        document.getElementById('box_size').value = '';
+        searchResults.innerHTML = ''; // Optionally clear results
+    });
+    
+    // Function to display search results
+    function displaySearchResults(boxes) {
+        if (!boxes || boxes.length === 0) {
+            searchResults.innerHTML = '<div class="alert alert-info">No boxes found matching your search criteria.</div>';
+            return;
+        }
+        
+        // Create result HTML
+        let resultsHtml = '<h3>Search Results</h3>';
+        resultsHtml += '<div class="list-group">';
+        
+        boxes.forEach(box => {
+            const priorityClass = getPriorityClass(box.priority);
+            resultsHtml += `
+                <div class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Box #${box.box_number}</h5>
+                        <div>
+                            <a href="/edit/${box.id}" class="btn btn-sm btn-primary me-1">Edit</a>
+                            <button class="btn btn-sm btn-danger delete-box" data-box-id="${box.id}">Delete</button>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-${priorityClass} me-2">${box.priority}</span>
+                        <span class="badge bg-secondary me-2">${box.category}</span>
+                        <span class="badge bg-info">${box.box_size}</span>
+                    </div>
+                    <p class="mb-1">${box.description}</p>
+                    <small class="text-muted">Last updated: ${new Date(box.last_modified).toLocaleString()}</small>
+                </div>
+            `;
+        });
+        
+        resultsHtml += '</div>';
+        searchResults.innerHTML = resultsHtml;
+        
+        // Add event listeners for delete buttons
+        document.querySelectorAll('.delete-box').forEach(button => {
+            button.addEventListener('click', async function() {
+                const boxId = this.getAttribute('data-box-id');
+                if (confirm('Are you sure you want to delete this box?')) {
+                    try {
+                        const response = await fetch(`/api/boxes/${boxId}?editor=user`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        // Remove the box from display
+                        this.closest('.list-group-item').remove();
+                        
+                        // If no boxes left, show no results message
+                        if (document.querySelectorAll('.list-group-item').length === 0) {
+                            searchResults.innerHTML = '<div class="alert alert-info">No boxes found matching your search criteria.</div>';
+                        }
+                    } catch (error) {
+                        alert(`Error deleting box: ${error.message}`);
+                    }
+                }
+            });
+        });
+    }
+    
+    // Helper function to get Bootstrap color class for priority
+    function getPriorityClass(priority) {
+        switch (priority) {
+            case 'Priority 1': return 'danger';
+            case 'Priority 2': return 'warning';
+            case 'Important': return 'primary';
+            case 'Store': return 'success';
+            default: return 'secondary';
+        }
+    }
+    
+    // Make form elements more touch-friendly
+    document.querySelectorAll('select.form-select').forEach(select => {
+        select.style.height = '48px';
+    });
+
+    // Dynamically populate category dropdown from /api/categories
+    console.log('Fetching categories from API...');
+    fetch('/api/categories', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+        }
+    })
+        .then(response => {
+            console.log('API response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`API returned ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(categories => {
+            console.log('Categories received:', categories);
+            const categorySelect = document.getElementById('category');
+            if (categorySelect) {
+                // Remove all except 'Any Category'
+                while (categorySelect.options.length > 1) {
+                    categorySelect.remove(1);
+                }
+                categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    categorySelect.appendChild(opt);
+                });
+                console.log('Category dropdown updated with', categories.length, 'options');
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load categories:', error);
+            // Try a direct fetch to debug
+            console.log('Attempting direct fetch to diagnose issue...');
+            fetch('/api/categories', { method: 'GET' })
+                .then(response => console.log('Direct fetch status:', response.status, response.statusText))
+                .catch(err => console.error('Direct fetch also failed:', err));
+        });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12 col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">{% if box %}Edit Box #{{ box.box_number }}{% else %}Create New Box{% endif %}</h2>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    <form method="post" id="boxForm">
+                        <!-- Box Number (Read Only but still submits) -->
+                        <div class="mb-3">
+                            <label for="boxNumber" class="form-label">Box Number</label>
+                            <input type="number" class="form-control" id="boxNumber" name="box_number" readonly 
+                                value="{% if box %}{{ box.box_number }}{% else %}{{ next_box_number }}{% endif %}">
+                            <small class="text-muted">Box numbers are automatically assigned</small>
+                            {% if not box %}
+                            <div class="alert alert-warning mt-2">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong>Important:</strong> This box number is not reserved until you click the "Create Box" button. 
+                                If you leave this page without submitting, someone else may use this number. 
+                                Please finish creating your box entry before labeling physical boxes.
+                            </div>
+                            {% endif %}
+                            <!-- Hidden field to ensure box_number is submitted even if readonly field is ignored -->
+                            <input type="hidden" name="box_number" value="{% if box %}{{ box.box_number }}{% else %}{{ next_box_number }}{% endif %}">
+                        </div>
+
+                        <!-- Priority -->
+                        <div class="mb-3">
+                            <label for="priority" class="form-label">Priority *</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="">Select Priority</option>
+                                <option value="Priority 1" {% if box and box.priority == 'Priority 1' %}selected{% endif %}>Priority 1</option>
+                                <option value="Priority 2" {% if box and box.priority == 'Priority 2' %}selected{% endif %}>Priority 2</option>
+                                <option value="Important" {% if box and box.priority == 'Important' %}selected{% endif %}>Important</option>
+                                <option value="Store" {% if box and box.priority == 'Store' %}selected{% endif %}>Store</option>
+                            </select>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category *</label>
+                            <!-- Search filter for categories -->
+                            <div class="mb-2">
+                                <label for="categorySearch" class="form-label" style="font-weight: bold;">Filter Categories:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="categorySearch" placeholder="Search categories..." 
+                                           style="border: 1px solid #28a745; border-radius: 4px;">
+                                    <button class="btn btn-outline-secondary" type="button" id="clearCategorySearch" title="Clear filter">
+                                        <i class="bi bi-x-lg"></i> Clear
+                                    </button>
+                                </div>
+                                <div id="categoryFilterStatus" class="mt-1 small"></div>
+                                <small class="text-muted mt-1">
+                                    <i class="bi bi-info-circle"></i> Type to filter categories. Non-matching categories will be hidden. 
+                                    Click "Clear" to show all categories again.
+                                </small>
+                            </div>
+                            <div class="input-group">
+                                <!-- Scrollable dropdown for improved usability with long category lists -->
+                                <select class="form-select" id="category" name="category" required style="max-height: 240px; overflow-y: auto;">
+                                    <option value="">Select Category</option>
+                                    {% if categories %}
+                                        {% for cat in categories %}
+                                        <option value="{{ cat.id }}"
+                                                {% if box and box.category_id == cat.id %}selected{% endif %}>
+                                            {{ cat.name }}
+                                        </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                <button class="btn btn-outline-success" type="button" id="quickAddCategory" title="Quick add new category">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
+                                <a href="{{ url_for('manage_categories') }}" class="btn btn-outline-primary" title="Manage all categories">
+                                    <i class="bi bi-gear"></i>
+                                </a>
+                            </div>
+                            <small class="text-muted">
+                                Don't see your category? Click the + button to add it instantly!
+                            </small>
+                        </div>
+
+                        <!-- Quick Add Category Modal -->
+                        <div class="modal fade" id="quickCategoryModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Add New Category</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="quickCategoryForm">
+                                            <div class="mb-3">
+                                                <label for="newCategoryName" class="form-label">Category Name</label>
+                                                <input type="text" class="form-control" id="newCategoryName"
+                                                       placeholder="e.g., Shoe Rack, Cupboard in Kitchen">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+                                        <button type="button" class="btn btn-success" id="addCategoryBtn">Add Category</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Box Size -->
+                        <div class="mb-3">
+                            <label for="boxSize" class="form-label">Box Size *</label>
+                            <select class="form-select" id="boxSize" name="box_size" required>
+                                <option value="" disabled selected>Select Size</option>
+                                <option value="Small" {% if box and box.box_size == 'Small' %}selected{% endif %}>Small</option>
+                                <option value="Medium" {% if box and box.box_size == 'Medium' %}selected{% endif %}>Medium</option>
+                                <option value="Large" {% if box and box.box_size == 'Large' %}selected{% endif %}>Large</option>
+                                <option value="Extra Large" {% if box and box.box_size == 'Extra Large' %}selected{% endif %}>Extra Large</option>
+                            </select>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (separate items with commas)</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                    placeholder="e.g., Kitchen items, plates, utensils" 
+                                    spellcheck="true" 
+                                    lang="en">{{ box.description if box else '' }}</textarea>
+                            <small class="text-muted">
+                                List the contents of the box, separated by commas
+                            </small>
+                            <small class="form-text text-info">
+                                Spell checking is enabled for this field
+                            </small>
+                        </div>
+
+                        <!-- Submit Button FIX: Move button directly inside form to ensure it's a child of the form in the DOM -->
+                        <button type="submit" class="btn btn-primary btn-lg" style="pointer-events: auto !important; z-index: 9999 !important;">{% if box %}Update{% else %}Create{% endif %} Box</button>
+                        <div class="d-grid gap-2">
+                            {% if not box %}
+                            <button type="button" id="clearDbBtn" class="btn btn-danger" style="display: none;">Clear Database</button>
+                            {% endif %}
+                            {% if box %}
+                            <a href="{{ url_for('list_boxes') }}" class="btn btn-secondary">Cancel</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}{% endblock %}

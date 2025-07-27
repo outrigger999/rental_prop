@@ -1,0 +1,8 @@
+{
+  "backup_directory": "backups",
+  "max_backups": 20,
+  "database_path": "moving_boxes.db",
+  "auto_backup": true,
+  "backup_interval": 86400,
+  "last_backup": "2025-06-17T16:25:28.982901"
+}

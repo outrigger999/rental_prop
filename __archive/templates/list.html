@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Box List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="h4 mb-0">Box List ({{ total_boxes }} boxes)</h2>
+                    <small class="text-muted">Showing all {{ total_boxes }} boxes</small>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <!-- Scroll to Bottom button -->
+                    <button id="scrollToBottomBtn" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-down"></i> Scroll to Bottom
+                    </button>
+                </div>
+            </div>
+
+            <div id="box-list" class="box-list">
+                {% for box in boxes %}
+                <div class="card mb-2 box-card" data-box-number="{{ box.box_number }}">
+                    <div class="card-body py-2">
+                        <div class="row align-items-center">
+                            <div class="col-12 col-sm-2">
+                                <h5 class="card-title mb-1 mb-sm-0">Box #{{ box.box_number }}</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <div class="mb-1 mb-sm-0">
+                                    <span class="badge bg-{{ get_priority_color(box.priority) }} me-1">{{ box.priority }}</span>
+                                    <span class="badge bg-secondary me-1">{{ box.category }}</span>
+                                    <span class="badge bg-info">{{ box.box_size }}</span>
+                                </div>
+                                <p class="card-text mb-0 mt-1 small">{{ box.description }}</p>
+                            </div>
+                            <div class="col-12 col-sm-2 mt-1 mt-sm-0">
+                                <div class="d-flex gap-1 justify-content-start justify-content-sm-end">
+                                    <a href="/edit/{{ box.id }}" class="btn btn-sm btn-primary py-1" title="Edit Box">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger delete-box py-1" data-box-id="{{ box.id }}" title="Delete Box">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if not boxes %}
+            <div class="alert alert-info">
+                No boxes found. 
+            </div>
+            {% endif %}
+            
+            <!-- Scroll to Top Button (fixed position) -->
+            <div id="scrollToTopContainer" style="position: fixed; bottom: 70px; right: 20px; display: none; z-index: 1000;">
+                <button id="scrollToTopBtn" class="btn btn-primary rounded-circle" style="width: 50px; height: 50px;">
+                    <i class="bi bi-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const boxList = document.getElementById('box-list');
+    const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+    const scrollToTopContainer = document.getElementById('scrollToTopContainer');
+
+    // Make dropdowns mobile-friendly
+    const selects = document.querySelectorAll('select.form-select');
+    selects.forEach(select => {
+        select.style.height = '48px';
+    });
+    
+    // Remove any existing pagination-related elements
+    const paginationElements = document.querySelectorAll('.pagination');
+    paginationElements.forEach(el => el.remove());
+
+    // Scroll to bottom button - simplified implementation that works on mobile
+    scrollToBottomBtn.addEventListener('click', function() {
+        // Small delay to ensure content is fully loaded
+        setTimeout(() => {
+            const boxListContainer = document.getElementById('box-list');
+            const containerBottom = boxListContainer.getBoundingClientRect().bottom + window.scrollY;
+            
+            window.scrollTo({
+                top: containerBottom,
+                behavior: 'smooth'
+            });
+        }, 50);
+    });
+
+    // Scroll to top button (show/hide based on scroll position)
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 300) {
+            scrollToTopContainer.style.display = 'block';
+        } else {
+            scrollToTopContainer.style.display = 'none';
+        }
+    });
+
+    scrollToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Delete box handling
+    document.addEventListener('click', async function(e) {
+        if (!e.target.closest('.delete-box')) return;
+        
+        const button = e.target.closest('.delete-box');
+        const boxId = button.dataset.boxId;
+        
+        if (!confirm('Are you sure you want to delete this box?')) return;
+
+        try {
+            const response = await fetch(`/api/boxes/${boxId}?editor=user`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) throw new Error('Delete failed');
+            
+            button.closest('.box-card').remove();
+        } catch (error) {
+            alert('Error deleting box: ' + error.message);
+        }
+    });
+
+    function getPriorityColor(priority) {
+        switch (priority) {
+            case 'Priority 1': return 'danger';
+            case 'Priority 2': return 'warning';
+            case 'Important': return 'primary';
+            case 'Store': return 'success';
+            default: return 'secondary';
+        }
+    }
+});
+</script>
+
+<style>
+/* Mobile-friendly styles */
+@media (max-width: 768px) {
+    .box-card .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .box-card .badge {
+        font-size: 0.8rem;
+    }
+    
+    /* Ensure proper list height and scrolling on mobile */
+    .box-list {
+        position: relative;
+        min-height: 200px;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+    }
+
+    /* Ensure buttons are large enough for touch */
+    #scrollToBottomBtn,
+    #scrollToTopBtn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 10px;
+        touch-action: manipulation;
+    }
+}
+</style>
+{% endblock %}

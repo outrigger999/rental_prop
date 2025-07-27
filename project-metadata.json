@@ -1,0 +1,18 @@
+{
+  "name": "Rental Property Tracker",
+  "vision": "To provide a personal web application for efficiently tracking and managing rental properties during a property search, focusing on key criteria and commute times in the Seattle area.",
+  "business_model": "Personal use application, no direct business model.",
+  "target_market": "Individuals searching for rental properties, specifically in the Seattle area with commute considerations.",
+  "core_value_proposition": "Simplifies rental property search by centralizing property details, commute analysis, and image management in a user-friendly web interface.",
+  "pricing_tiers": {
+    "basic": "N/A",
+    "professional": "N/A",
+    "enterprise": "N/A"
+  },
+  "industry": "Personal Productivity / Real Estate",
+  "project_stage": "Development",
+  "key_stakeholders": [
+    "User (Self)",
+    "Potential Housemates"
+  ]
+}

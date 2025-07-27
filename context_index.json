@@ -1,0 +1,46 @@
+{
+  "_version": "1.2",
+  "project": "Rental Property Tracker",
+  "last_updated": "2025-07-27T08:43:40Z",
+  "bundle_purpose": "Comprehensive project context for AI/LLM collaboration",
+  "usage_instructions": "Load all files to provide complete project context to AI systems",
+  "files": [
+    {
+      "name": "project-metadata.json",
+      "purpose": "Core business context and positioning",
+      "priority": "high",
+      "load_order": 1
+    },
+    {
+      "name": "technical-architecture.json",
+      "purpose": "System design and technology stack",
+      "priority": "high",
+      "load_order": 2
+    },
+    {
+      "name": "user-personas.json",
+      "purpose": "Target customer behaviors and needs",
+      "priority": "medium",
+      "load_order": 3
+    },
+    {
+      "name": "market-analysis.json",
+      "purpose": "Competitive landscape and positioning",
+      "priority": "medium",
+      "load_order": 4
+    },
+    {
+      "name": "feature-roadmap.json",
+      "purpose": "Development priorities and strategic direction",
+      "priority": "medium",
+      "load_order": 5
+    },
+    {
+      "name": "strategic-content.json",
+      "purpose": "Current challenges and decision requirements",
+      "priority": "high",
+      "load_order": 6
+    }
+  ],
+  "ai_ingestion_prompt": "Please ingest these context files for our project. They contain comprehensive business, technical, and strategic information that should inform all future responses. Reference them as needed and let me know when ingestion is complete."
+}
