@@ -182,9 +182,19 @@ else
         echo -e "${GREEN}[INFO]${NC} Resetting local changes..."
         git reset --hard HEAD
         git clean -fd
-        echo -e "${GREEN}[INFO]${NC} Pulling latest changes from branch '$TARGET_BRANCH'..."
-        git pull origin "$TARGET_BRANCH" || { echo -e "${RED}[ERROR]${NC} Git pull failed for branch '$TARGET_BRANCH'!"; exit 1; }
-        echo -e "${GREEN}[INFO]${NC} Git pull from branch '$TARGET_BRANCH' successful."
+        
+        # Check current branch and switch to main if needed
+        CURRENT_PI_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        if [ "$CURRENT_PI_BRANCH" != "main" ]; then
+            echo -e "${YELLOW}[WARNING]${NC} Pi is on '$CURRENT_PI_BRANCH' branch, switching to 'main' branch..."
+            git fetch origin
+            git checkout main || git checkout -b main origin/main || { echo -e "${RED}[ERROR]${NC} Failed to switch to main branch!"; exit 1; }
+            echo -e "${GREEN}[INFO]${NC} Successfully switched to 'main' branch."
+        fi
+        
+        echo -e "${GREEN}[INFO]${NC} Pulling latest changes from branch 'main'..."
+        git pull origin main || { echo -e "${RED}[ERROR]${NC} Git pull failed for branch 'main'!"; exit 1; }
+        echo -e "${GREEN}[INFO]${NC} Git pull from branch 'main' successful."
 
         # Fix permissions for static files
         echo -e "${GREEN}[INFO]${NC} Fixing static file permissions..."
