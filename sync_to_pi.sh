@@ -314,9 +314,13 @@ else
             print_message "Service enabled."
         fi
 
-        print_message "Restarting service '$SERVICE_NAME'..."
-        sudo systemctl restart "$SERVICE_NAME" || { print_error "Failed to restart service!"; exit 1; }
-        print_message "Service restart command sent."
+        print_message "Stopping service '$SERVICE_NAME'..."
+        sudo systemctl stop "$SERVICE_NAME" || print_warning "Service '$SERVICE_NAME' was not running or failed to stop."
+        print_message "Service stopped."
+
+        print_message "Starting service '$SERVICE_NAME'..."
+        sudo systemctl start "$SERVICE_NAME" || { print_error "Failed to start service!"; exit 1; }
+        print_message "Service start command sent."
 
         # Check service status with retry
         print_message "Waiting for service to become active..."
