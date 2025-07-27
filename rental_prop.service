@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance for Rental Property Tracker
+After=network.target
+
+[Service]
+User=pi
+Group=www-data
+WorkingDirectory=/home/pi/rental_prop
+Environment="PATH=/home/pi/miniconda3/envs/rental_prop_env/bin"
+ExecStart=/home/pi/miniconda3/envs/rental_prop_env/bin/gunicorn --workers 4 --bind 0.0.0.0:5000 app:app
+
+[Install]
+WantedBy=multi-user.target
