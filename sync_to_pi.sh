@@ -9,7 +9,8 @@
 # Configuration
 LOCAL_DIR="$(pwd)/" # Current working directory
 REMOTE_HOST="movingdb"  # Using hostname for SSH authentication
-REMOTE_USER="pi"  # Username for SSH connection
+RPI_USER="smashimo"  # Username for SSH connection
+REMOTE_USER="smashimo"  # Username for SSH connection
 REMOTE_DIR="/home/${REMOTE_USER}/rental_prop/"  # Project directory on Pi
 CONDA_ENV="rental_prop_env"
 GITHUB_REPO="https://github.com/outrigger999/rental_prop.git"
@@ -206,7 +207,7 @@ else
         # --- Conda Environment Management ---
         print_message "Managing Conda environment '$CONDA_ENV'..."
         # Source conda setup script
-        source /home/pi/miniconda3/etc/profile.d/conda.sh || { print_error "Failed to source miniconda3/etc/profile.d/conda.sh. Is Miniconda installed?"; exit 1; }
+        source /home/smashimo/miniconda3/etc/profile.d/conda.sh || { print_error "Failed to source miniconda3/etc/profile.d/conda.sh. Is Miniconda installed?"; exit 1; }
         
         # Check if environment exists
         if ! conda env list | grep -q "$CONDA_ENV"; then
@@ -367,3 +368,35 @@ EOF
     print_message "Deployment completed successfully!"
     print_message "You can access the application at http://${REMOTE_HOST}.box:5000 (or your configured domain)"
 fi
+
+</file_content>
+</error><environment_details>
+# VSCode Visible Files
+sync_to_pi.sh
+
+# VSCode Open Tabs
+project-metadata.json
+context_index.json
+feature-roadmap.json
+market-analysis.json
+strategic-content.json
+technical-architecture.json
+user-personas.json
+app.py
+templates/index.html
+templates/add_property.html
+static/css/style.css
+requirements.txt
+rental_prop.service
+nginx.conf
+sync_to_pi.sh
+
+# Current Time
+7/27/2025, 11:18:12 AM (Pacific/Honolulu, UTC-10:00)
+
+# Context Window Usage
+101,686 / 1,048.576K tokens used (10%)
+
+# Current Mode
+ACT MODE
+</environment_details>
