@@ -1,17 +1,18 @@
 #!/bin/bash
 
 # Rental Property Tracker Sync Script
+# Version 1.0
 #
-# This script syncs the project files to the Raspberry Pi and manages the service.
+# This script syncs the project files to the Raspberry Pi and restarts the service
 # It includes a dry-run option, better error handling, conda environment support,
-# branch detection, and reverse sync for database and uploads.
+# branch detection, and reverse sync for database and uploads
 
 # Configuration
-LOCAL_DIR="$(pwd)/" # Current working directory
+LOCAL_DIR="/Volumes/Projects/Python Projects/rental_prop/" # Updated to current project path
 REMOTE_HOST="movingdb"  # Using hostname for SSH authentication
-RPI_USER="smashimo"  # Username for SSH connection
+REMOTE_IP="192.168.10.10"  # Actual IP for direct URL access
 REMOTE_USER="smashimo"  # Username for SSH connection
-REMOTE_DIR="/home/${REMOTE_USER}/rental_prop/"  # Project directory on Pi
+REMOTE_DIR="~/rental_prop/"  # Project directory on Pi
 CONDA_ENV="rental_prop_env"
 GITHUB_REPO="https://github.com/outrigger999/rental_prop.git"
 
@@ -22,7 +23,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Constants
-VERSION="1.0" # Initial version for Rental Property Tracker
+VERSION="1.0"
 
 # Function to display messages
 print_message() {
@@ -40,7 +41,7 @@ print_error() {
 # Display banner function
 print_banner() {
     echo -e "\n${GREEN}╔═════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║${NC}  Rental Property Tracker Sync Script v${VERSION}  ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}  Rental Property Tracker Sync Script v${VERSION}       ${GREEN}║${NC}"
     echo -e "${GREEN}╚═════════════════════════════════════════════╝${NC}\n"
 }
 
@@ -153,215 +154,78 @@ else
     fi
 fi
 
-# --- Main Sync (TO Pi) ---
+# --- Main Deployment via Git Pull on Pi ---
 if [ "$DRY_RUN" = true ]; then
-    print_message "DRY RUN: Files that would be synced TO Pi:"
-    rsync -avzn --delete \
-        --exclude 'venv' \
-        --exclude '__pycache__' \
-        --exclude '*.pyc' \
-        --exclude '.git' \
-        --exclude '*.db' \
-        --exclude 'static/uploads/' \
-        --exclude '.last_req_checksum' \
-        --exclude '.conda/' \
-        -e ssh \
-        "$LOCAL_DIR" \
-        "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR"
+    print_message "DRY RUN: Would execute Git pull and service restart on Pi"
 else
-    print_message "Syncing files TO $REMOTE_HOST..."
-    rsync -avz --delete \
-        --exclude 'venv' \
-        --exclude '__pycache__' \
-        --exclude '*.pyc' \
-        --exclude '.git' \
-        --exclude '*.db' \
-        --exclude 'static/uploads/' \
-        --exclude '.last_req_checksum' \
-        --exclude '.conda/' \
-        -e ssh \
-        "$LOCAL_DIR" \
-        "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR"
-    
-    if [ $? -ne 0 ]; then
-        print_error "Failed to sync files to $REMOTE_HOST"
-        exit 1
-    fi
-    
-    print_message "Executing remote commands on $REMOTE_HOST..."
+    print_message "Pulling latest changes from branch '$TARGET_BRANCH', updating dependencies, and restarting service on $REMOTE_HOST..."
 
-    ssh $REMOTE_USER@$REMOTE_HOST UPDATE_CONDA=$UPDATE_CONDA TARGET_BRANCH="$TARGET_BRANCH" CONDA_ENV="$CONDA_ENV" REMOTE_DIR="$REMOTE_DIR" << 'EOF'
+    ssh $REMOTE_USER@$REMOTE_HOST UPDATE_CONDA=$UPDATE_CONDA TARGET_BRANCH="$TARGET_BRANCH" CONDA_ENV="$CONDA_ENV" << 'EOF'
         # Define colors directly in the SSH session
         GREEN='\033[0;32m'
         YELLOW='\033[1;33m'
         RED='\033[0;31m'
         NC='\033[0m' # No Color
         
-        print_message() { echo -e "${GREEN}[INFO]${NC} $1"; }
-        print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-        print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-
-        # Ensure we are in the project directory
-        cd "$REMOTE_DIR" || { print_error "Could not cd to project directory!"; exit 1; }
-
-        # --- Conda Environment Management ---
-        print_message "Managing Conda environment '$CONDA_ENV'..."
+        echo -e "${GREEN}[INFO]${NC} Activating conda environment $CONDA_ENV..."
         # Source conda setup script
-        source /home/smashimo/miniconda3/etc/profile.d/conda.sh || { print_error "Failed to source miniconda3/etc/profile.d/conda.sh. Is Miniconda installed?"; exit 1; }
-        
-        # Check if environment exists
-        if ! conda env list | grep -q "$CONDA_ENV"; then
-            print_message "Conda environment '$CONDA_ENV' not found. Creating it..."
-            conda create -n "$CONDA_ENV" python=3.9 -y || { print_error "Failed to create conda environment '$CONDA_ENV'!"; exit 1; }
-        fi
-        
-        conda activate "$CONDA_ENV" || { print_error "Failed to activate conda env '$CONDA_ENV'!"; exit 1; }
+        source ~/miniconda3/etc/profile.d/conda.sh || { echo -e "${RED}[ERROR]${NC} Failed to source conda setup"; exit 1; }
+        conda activate "$CONDA_ENV" || { echo -e "${RED}[ERROR]${NC} Failed to activate conda env $CONDA_ENV"; exit 1; }
 
-        # Generate environment.yml from requirements.txt for robust conda updates
-        print_message "Generating environment.yml from requirements.txt..."
-        # This is a simplified approach. For complex dependencies, `conda env export` is better.
-        # But for simple Flask apps, pip requirements are often sufficient.
-        # If you need to manage conda-specific packages, you'd manually create environment.yml
-        # or use `conda env export --from-history` on a working local env.
-        echo "name: $CONDA_ENV" > environment.yml
-        echo "channels:" >> environment.yml
-        echo "  - defaults" >> environment.yml
-        echo "dependencies:" >> environment.yml
-        echo "  - python=3.9" >> environment.yml # Ensure Python version
-        while IFS= read -r line; do
-            if [[ ! -z "$line" && ! "$line" =~ ^# ]]; then # Ignore empty lines and comments
-                echo "  - pip" >> environment.yml
-                echo "  - pip:" >> environment.yml
-                echo "    - $line" >> environment.yml
-            fi
-        done < requirements.txt
+        echo -e "${GREEN}[INFO]${NC} Changing to project directory ~/rental_prop..."
+        cd ~/rental_prop || { echo -e "${RED}[ERROR]${NC} Could not cd to project directory!"; exit 1; }
 
-        if [ "$UPDATE_CONDA" = true ]; then
-            print_message "Updating conda environment '$CONDA_ENV' with environment.yml..."
-            conda env update -f environment.yml --prune || { print_error "Failed to update conda environment!"; exit 1; }
-            print_message "Conda environment updated successfully."
-        else
-            print_message "Installing/updating pip requirements (use --conda for full conda env update)..."
-            pip install -r requirements.txt || { print_error "Failed to install pip requirements!"; exit 1; }
-        fi
-        print_message "Dependencies installed/updated."
+        # Explicitly tell Git to use the SSH key
+        export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa"
 
-        # --- Git Operations (Remote) ---
-        print_message "Resetting local changes on Pi..."
+        # Reset any local changes and pull latest from Git
+        echo -e "${GREEN}[INFO]${NC} Resetting local changes..."
         git reset --hard HEAD
         git clean -fd
-        print_message "Pulling latest changes from branch '$TARGET_BRANCH'..."
-        git pull origin "$TARGET_BRANCH" || { print_error "Git pull failed for branch '$TARGET_BRANCH'!"; exit 1; }
-        print_message "Git pull from branch '$TARGET_BRANCH' successful."
+        echo -e "${GREEN}[INFO]${NC} Pulling latest changes from branch '$TARGET_BRANCH'..."
+        git pull origin "$TARGET_BRANCH" || { echo -e "${RED}[ERROR]${NC} Git pull failed for branch '$TARGET_BRANCH'!"; exit 1; }
+        echo -e "${GREEN}[INFO]${NC} Git pull from branch '$TARGET_BRANCH' successful."
 
-        # --- Permissions Fix ---
-        print_message "Fixing static and template file permissions..."
-        # Fix directory permissions (755 = rwxr-xr-x) for both static and templates
-        print_message "Setting directory permissions to 755..."
-        find static templates -type d -exec chmod 755 {} \; || { print_error "Failed to set directory permissions!"; exit 1; }
-        
-        # Fix file permissions (644 = rw-r--r--) for both static and templates
-        print_message "Setting file permissions to 644..."
-        find static templates -type f -exec chmod 644 {} \; || { print_error "Failed to set file permissions!"; exit 1; }
-        
-        # Fix ownership for both static and templates
-        print_message "Setting correct ownership..."
-        sudo chown -R "$REMOTE_USER":www-data "$REMOTE_DIR"static/ "$REMOTE_DIR"templates/ || { print_error "Failed to set ownership!"; exit 1; }
-        sudo chmod -R g+r "$REMOTE_DIR"static/ "$REMOTE_DIR"templates/ || { print_error "Failed to set group read permissions!"; exit 1; }
-        
-        # Fix parent directory permissions
-        print_message "Setting parent directory permissions..."
-        sudo chmod o+rx "/home/$REMOTE_USER" || { print_error "Failed to set home directory permissions!"; exit 1; }
-        sudo chmod o+rx "$REMOTE_DIR" || { print_error "Failed to set project directory permissions!"; exit 1; }
-        
-        print_message "Permissions and ownership fixed."
-
-        # --- Database Schema Check ---
-        print_message "Checking database schema..."
-        if [ ! -f rental_properties.db ]; then
-            print_message "Database not found, initializing schema..."
-            sqlite3 rental_properties.db < schema.sql || { print_error "Failed to initialize schema!"; exit 1; }
-            print_message "Schema initialized successfully."
+        # Fix permissions for static files
+        echo -e "${GREEN}[INFO]${NC} Fixing static file permissions..."
+        if [ -d "static" ]; then
+            find static -type d -exec chmod 755 {} \;
+            find static -type f -exec chmod 644 {} \;
+            echo -e "${GREEN}[INFO]${NC} Static file permissions fixed."
         fi
 
-        # --- Service Management (Systemd) ---
-        # This assumes a systemd service file named rental_prop.service will be created
-        SERVICE_NAME="rental_prop.service"
-        PROJECT_SERVICE_FILE="${REMOTE_DIR}${SERVICE_NAME}"
-        SYSTEMD_SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}"
-        SERVICE_FILE_UPDATED=false
-
-        if [ -f "$PROJECT_SERVICE_FILE" ]; then
-            if sudo test "$PROJECT_SERVICE_FILE" -nt "$SYSTEMD_SERVICE_FILE" 2>/dev/null; then
-                print_message "Project service file is newer, updating systemd service file..."
-                sudo cp "$PROJECT_SERVICE_FILE" "$SYSTEMD_SERVICE_FILE" || { print_error "Failed to copy service file!"; exit 1; }
-                print_message "Systemd service file updated."
-                SERVICE_FILE_UPDATED=true
-            else
-                print_message "Systemd service file is up-to-date."
-            fi
-        else
-            print_warning "Project service file ($PROJECT_SERVICE_FILE) not found. Cannot update systemd service file automatically."
+        # Update dependencies if requested
+        if [ "$UPDATE_CONDA" = "true" ]; then
+            echo -e "${GREEN}[INFO]${NC} Updating conda environment dependencies..."
+            conda env update -f environment.yml || pip install -r requirements.txt || echo -e "${YELLOW}[WARNING]${NC} Could not update dependencies"
         fi
 
-        if [ "$SERVICE_FILE_UPDATED" = true ]; then
-            print_message "Reloading systemd daemon..."
-            sudo systemctl daemon-reload || { print_error "Failed to reload systemd daemon!"; exit 1; }
-            print_message "Systemd daemon reloaded."
-            
-            print_message "Enabling service '$SERVICE_NAME'..."
-            sudo systemctl enable "$SERVICE_NAME" || { print_error "Failed to enable service!"; exit 1; }
-            print_message "Service enabled."
-        fi
+        # Stop the service
+        echo -e "${GREEN}[INFO]${NC} Stopping rental_prop service..."
+        sudo systemctl stop rental_prop || echo -e "${YELLOW}[WARNING]${NC} Service may not be running"
 
-        print_message "Stopping service '$SERVICE_NAME'..."
-        sudo systemctl stop "$SERVICE_NAME" || print_warning "Service '$SERVICE_NAME' was not running or failed to stop."
-        print_message "Service stopped."
+        # Start the service
+        echo -e "${GREEN}[INFO]${NC} Starting rental_prop service..."
+        sudo systemctl start rental_prop || { echo -e "${RED}[ERROR]${NC} Failed to start service!"; exit 1; }
 
-        print_message "Starting service '$SERVICE_NAME'..."
-        sudo systemctl start "$SERVICE_NAME" || { print_error "Failed to start service!"; exit 1; }
-        print_message "Service start command sent."
+        # Enable the service for auto-start
+        sudo systemctl enable rental_prop || echo -e "${YELLOW}[WARNING]${NC} Could not enable service for auto-start"
 
-        # Check service status with retry
-        print_message "Waiting for service to become active..."
-        RETRY_COUNT=0
-        MAX_RETRIES=10 # Try for ~30 seconds
-        DELAY=3       # Seconds between retries
+        # Check service status
+        echo -e "${GREEN}[INFO]${NC} Checking service status..."
+        sudo systemctl status rental_prop --no-pager -l || echo -e "${YELLOW}[WARNING]${NC} Could not get service status"
 
-        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-            SERVICE_STATUS=$(systemctl is-active "$SERVICE_NAME")
-            if [ "$SERVICE_STATUS" == "active" ]; then
-                 print_message "Service is active."
-                 break
-            fi
-            SERVICE_FAILED=$(systemctl is-failed "$SERVICE_NAME")
-            if [ "$SERVICE_FAILED" == "failed" ]; then
-                 print_error "Service entered failed state."
-                 sudo journalctl -u "$SERVICE_NAME" -n 20 --no-pager # Show logs on failure
-                 exit 1 # Exit SSH sub-shell with error
-            fi
-            
-            print_message "Service status: $SERVICE_STATUS. Retrying in $DELAY seconds..."
-            sleep $DELAY
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-        done
-
-        FINAL_STATUS=$(systemctl is-active "$SERVICE_NAME")
-        if [ "$FINAL_STATUS" != "active" ]; then
-            print_error "Service failed to become active after $MAX_RETRIES retries."
-            print_error "Final status: $FINAL_STATUS"
-            sudo journalctl -u "$SERVICE_NAME" -n 20 --no-pager # Show logs on timeout
-            exit 1 # Exit SSH sub-shell with error
-        fi
-
-        # --- Nginx Configuration Update ---
-        # This assumes an nginx.conf file will be created in the project root
-        print_message "Updating nginx configuration..."
-        sudo cp "${REMOTE_DIR}nginx.conf" "/etc/nginx/sites-available/rental_prop" || { print_error "Failed to copy nginx config!"; exit 1; }
-        sudo ln -sf "/etc/nginx/sites-available/rental_prop" "/etc/nginx/sites-enabled/rental_prop"
-        sudo nginx -t || { print_error "Nginx config test failed!"; exit 1; }
-        sudo systemctl restart nginx || { print_error "Failed to restart nginx!"; exit 1; }
-        print_message "Nginx configuration updated and restarted."
-
-        print_message "Remote operations completed successfully."
+        echo -e "${GREEN}[INFO]${NC} Deployment completed successfully!"
 EOF
+
+    if [ $? -eq 0 ]; then
+        print_message "Deployment completed successfully!"
+        print_message "Application should be accessible at: http://$REMOTE_IP:5000"
+        print_message "You can also access it via hostname: http://$REMOTE_HOST:5000"
+    else
+        print_error "Deployment failed!"
+        exit 1
+    fi
+fi
+
+print_message "Sync script completed."
