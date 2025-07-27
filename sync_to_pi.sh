@@ -220,8 +220,8 @@ EOF
 
     if [ $? -eq 0 ]; then
         print_message "Deployment completed successfully!"
-        print_message "Application should be accessible at: http://$REMOTE_IP:5000"
-        print_message "You can also access it via hostname: http://$REMOTE_HOST:5000"
+        print_message "Application should be accessible at: http://$REMOTE_IP:6000"
+        print_message "You can also access it via hostname: http://$REMOTE_HOST:6000"
     else
         print_error "Deployment failed!"
         exit 1
