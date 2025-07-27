@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Property</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Add New Property</h1>
+        <form method="post">
+            <label for="property_type">Property Type:</label>
+            <select id="property_type" name="property_type" required>
+                <option value="">Select Type</option>
+                <option value="Home">Home</option>
+                <option value="Apartment">Apartment</option>
+                <option value="Townhome">Townhome</option>
+            </select>
+
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" required>
+
+            <label for="price">Price per month ($):</label>
+            <input type="number" id="price" name="price" step="0.01" required>
+
+            <label for="sq_ft">SQ FT:</label>
+            <input type="number" id="sq_ft" name="sq_ft">
+
+            <label for="num_bedrooms">Number of Bedrooms:</label>
+            <input type="number" id="num_bedrooms" name="num_bedrooms">
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="cat_friendly" name="cat_friendly" value="1">
+                <label for="cat_friendly">Cat Friendly</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="air_conditioning" name="air_conditioning" value="1">
+                <label for="air_conditioning">Air Conditioning</label>
+            </div>
+
+            <label for="parking_type">Type of Parking:</label>
+            <select id="parking_type" name="parking_type">
+                <option value="">Select Parking Type</option>
+                <option value="Off Street">Off Street Parking</option>
+                <option value="On Street">On Street Parking</option>
+            </select>
+
+            <label for="commute_morning">Peak traffic driving distance from Office (Morning):</label>
+            <input type="text" id="commute_morning" name="commute_morning">
+
+            <label for="commute_midday">Peak traffic driving distance from Office (Midday):</label>
+            <input type="text" id="commute_midday" name="commute_midday">
+
+            <label for="commute_evening">Peak traffic driving distance from Office (Evening):</label>
+            <input type="text" id="commute_evening" name="commute_evening">
+
+            <button type="submit">Add Property</button>
+            <a href="{{ url_for('index') }}" class="button secondary">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

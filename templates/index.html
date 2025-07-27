@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Property Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Rental Properties</h1>
+        <a href="{{ url_for('add_property') }}" class="button">Add New Property</a>
+        <div class="property-list">
+            {% for property in properties %}
+            <div class="property-card">
+                <h2>{{ property.address }}</h2>
+                <p><strong>Type:</strong> {{ property.property_type }}</p>
+                <p><strong>Price:</strong> ${{ property.price | int }} / month</p>
+                <p><strong>SQ FT:</strong> {{ property.sq_ft }}</p>
+                <p><strong>Bedrooms:</strong> {{ property.num_bedrooms }}</p>
+                <p><strong>Cat Friendly:</strong> {% if property.cat_friendly %}Yes{% else %}No{% endif %}</p>
+                <p><strong>Air Conditioning:</strong> {% if property.air_conditioning %}Yes{% else %}No{% endif %}</p>
+                <p><strong>Parking:</strong> {{ property.parking_type }}</p>
+                <p><strong>Commute (Morning):</strong> {{ property.commute_morning }}</p>
+                <p><strong>Commute (Midday):</strong> {{ property.commute_midday }}</p>
+                <p><strong>Commute (Evening):</strong> {{ property.commute_evening }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
