@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Rental Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Export Rental Data</h1>
+        <p>Choose your preferred export format:</p>
+        
+        <div class="export-options">
+            <a href="{{ url_for('export_file', format='csv') }}" class="button">Download as CSV</a>
+            <a href="{{ url_for('export_file', format='json') }}" class="button">Download as JSON</a>
+        </div>
+        
+        <div class="backup-info">
+            <h2>About Data Backup</h2>
+            <p>These exports provide a complete backup of your rental property data. You can use these files to:</p>
+            <ul>
+                <li>Keep an offline backup of your data</li>
+                <li>Import your data into spreadsheet software</li>
+                <li>Share your data with others</li>
+                <li>Restore your data if needed</li>
+            </ul>
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="button secondary">Back to Properties</a>
+    </div>
+</body>
+</html>

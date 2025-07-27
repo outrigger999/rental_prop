@@ -9,7 +9,53 @@
 <body>
     <div class="container">
         <h1>Rental Properties</h1>
-        <a href="{{ url_for('add_property') }}" class="button">Add New Property</a>
+        <div class="action-bar">
+            <a href="{{ url_for('add_property') }}" class="button">Add New Property</a>
+            <a href="{{ url_for('export_data') }}" class="button secondary">Export Data</a>
+        </div>
+        
+        <div class="search-container">
+            <h2>Search Properties</h2>
+            <form action="{{ url_for('search') }}" method="get">
+                <div class="search-row">
+                    <div class="search-field">
+                        <label for="min_price">Min Price:</label>
+                        <input type="number" id="min_price" name="min_price" value="{{ request.args.get('min_price', '') }}">
+                    </div>
+                    <div class="search-field">
+                        <label for="max_price">Max Price:</label>
+                        <input type="number" id="max_price" name="max_price" value="{{ request.args.get('max_price', '') }}">
+                    </div>
+                    <div class="search-field">
+                        <label for="min_bedrooms">Min Bedrooms:</label>
+                        <input type="number" id="min_bedrooms" name="min_bedrooms" value="{{ request.args.get('min_bedrooms', '') }}">
+                    </div>
+                </div>
+                
+                <div class="search-row">
+                    <div class="search-field">
+                        <label for="property_type">Property Type:</label>
+                        <select id="property_type" name="property_type">
+                            <option value="">Any</option>
+                            <option value="Home" {% if request.args.get('property_type') == 'Home' %}selected{% endif %}>Home</option>
+                            <option value="Apartment" {% if request.args.get('property_type') == 'Apartment' %}selected{% endif %}>Apartment</option>
+                            <option value="Townhome" {% if request.args.get('property_type') == 'Townhome' %}selected{% endif %}>Townhome</option>
+                        </select>
+                    </div>
+                    <div class="search-field checkbox-field">
+                        <input type="checkbox" id="cat_friendly" name="cat_friendly" value="1" {% if request.args.get('cat_friendly') %}checked{% endif %}>
+                        <label for="cat_friendly">Cat Friendly</label>
+                    </div>
+                    <div class="search-field checkbox-field">
+                        <input type="checkbox" id="air_conditioning" name="air_conditioning" value="1" {% if request.args.get('air_conditioning') %}checked{% endif %}>
+                        <label for="air_conditioning">Air Conditioning</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="search-button">Search</button>
+                <a href="{{ url_for('index') }}" class="button secondary">Clear Filters</a>
+            </form>
+        </div>
         <div class="property-list">
             {% for property in properties %}
             <div class="property-card">

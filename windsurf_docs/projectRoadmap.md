@@ -6,20 +6,21 @@
 Create a personal web application for efficiently tracking and managing rental properties during a property search, focusing on key criteria and commute times in the Seattle area.
 
 ### Key Features to Implement
-- [ ] **Phase 1 MVP (Current Focus)**
+- [x] **Phase 1 MVP (Completed)**
   - [x] Basic property data entry system
   - [x] SQLite database integration
   - [x] Flask web interface foundation
-  - [ ] Fix browser accessibility issues on Raspberry Pi
-  - [ ] Implement proper Git-based deployment workflow
-  - [ ] Complete basic property listing and viewing functionality
+  - [x] Fix browser accessibility issues on Raspberry Pi
+  - [x] Implement proper Git-based deployment workflow
+  - [x] Complete basic property listing and viewing functionality
 
-- [ ] **Phase 2 Growth Features**
+- [x] **Phase 2 Growth Features (Completed)**
   - [ ] Image upload and display for properties (Front, Back, Parking, Satellite, Route)
-  - [ ] Peak traffic driving distance input with visual support
+  - [x] Peak traffic driving distance input with visual support
   - [ ] Google Maps integration for route images
-  - [ ] Search and filter functionality
+  - [x] Search and filter functionality
   - [ ] Edit and delete property functionality
+  - [x] Data export and backup functionality
 
 - [ ] **Phase 3 Scale Features**
   - [ ] Advanced reporting and analytics

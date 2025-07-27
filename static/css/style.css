@@ -19,6 +19,12 @@ h1, h2 {
     color: #0056b3;
 }
 
+.action-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
 .button {
     display: inline-block;
     background-color: #007bff;
@@ -26,14 +32,22 @@ h1, h2 {
     padding: 10px 15px;
     border-radius: 5px;
     text-decoration: none;
-    margin-bottom: 20px;
     border: none;
     cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button:hover {
+    background-color: #0069d9;
 }
 
 .button.secondary {
     background-color: #6c757d;
     margin-left: 10px;
+}
+
+.button.secondary:hover {
+    background-color: #5a6268;
 }
 
 .property-list {
@@ -96,4 +110,97 @@ form button[type="submit"] {
 
 form button[type="submit"]:hover {
     background-color: #218838;
+}
+
+/* Search Container Styles */
+.search-container {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid #e9ecef;
+}
+
+.search-container h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.search-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.search-field {
+    flex: 1;
+    min-width: 150px;
+}
+
+.search-field label {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.search-field input,
+.search-field select {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.checkbox-field {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-field input {
+    margin-right: 8px;
+}
+
+.checkbox-field label {
+    margin-bottom: 0;
+    font-weight: normal;
+}
+
+.search-button {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-button:hover {
+    background-color: #218838;
+}
+
+/* Export Page Styles */
+.export-options {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.backup-info {
+    background-color: #e9ecef;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 25px 0;
+}
+
+.backup-info h2 {
+    margin-top: 0;
+    font-size: 1.3em;
+}
+
+.backup-info ul {
+    padding-left: 20px;
+}
+
+.backup-info li {
+    margin-bottom: 8px;
 }
