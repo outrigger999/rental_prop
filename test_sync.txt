@@ -1,0 +1,2 @@
+This is a sync test file created at: 2025-07-27 20:18:51
+If you can see this on the Pi, rsync is working!
