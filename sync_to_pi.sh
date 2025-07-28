@@ -157,7 +157,7 @@ fi
 # --- Direct File Transfer via rsync ---
 if [ "$DRY_RUN" = true ]; then
     print_message "DRY RUN: Would perform direct file transfer via rsync"
-    rsync -avzn --delete \
+    rsync -avzn --delete --ignore-times \
         --chmod=D755,F644 \
         --exclude 'venv' \
         --exclude '__pycache__' \
@@ -169,8 +169,8 @@ if [ "$DRY_RUN" = true ]; then
 else
     print_message "Performing direct file transfer via rsync to ensure file consistency..."
     
-    # Direct rsync transfer with proper permissions
-    rsync -avz --delete \
+    # Direct rsync transfer with proper permissions - IGNORE TIMESTAMPS to force transfer
+    rsync -avz --delete --ignore-times \
         --chmod=D755,F644 \
         --exclude 'venv' \
         --exclude '__pycache__' \
