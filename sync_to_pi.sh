@@ -9,9 +9,9 @@
 
 # Configuration
 LOCAL_DIR="/Volumes/Projects/Python Projects/rental_prop/" # Updated to current project path
-REMOTE_HOST="movingdb"  # Using hostname for SSH authentication
+REMOTE_HOST="movingdb"  # Using SSH config alias
 REMOTE_IP="192.168.10.10"  # Actual IP for direct URL access
-REMOTE_USER="smashimo"  # Username for SSH connection
+REMOTE_USER=""  # Not needed when using SSH config alias
 REMOTE_DIR="~/rental_prop/"  # Project directory on Pi
 CONDA_ENV="rental_prop_env"
 GITHUB_REPO="https://github.com/outrigger999/rental_prop.git"
@@ -193,7 +193,7 @@ if [ "$DRY_RUN" = true ]; then
 else
     print_message "Configuring services and restarting on $REMOTE_HOST..."
 
-    ssh $REMOTE_USER@$REMOTE_HOST UPDATE_CONDA=$UPDATE_CONDA TARGET_BRANCH="$TARGET_BRANCH" CONDA_ENV="$CONDA_ENV" << 'EOF'
+    ssh $REMOTE_HOST UPDATE_CONDA=$UPDATE_CONDA TARGET_BRANCH="$TARGET_BRANCH" CONDA_ENV="$CONDA_ENV" << 'EOF'
         # Define colors directly in the SSH session
         GREEN='\033[0;32m'
         YELLOW='\033[1;33m'
