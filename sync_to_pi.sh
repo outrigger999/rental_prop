@@ -210,6 +210,27 @@ else
             conda env update -f environment.yml || pip install -r requirements.txt || echo -e "${YELLOW}[WARNING]${NC} Could not update dependencies"
         fi
 
+        # Install/update systemd service file
+        echo -e "${GREEN}[INFO]${NC} Installing/updating systemd service file..."
+        if [ -f "rental_prop.service" ]; then
+            sudo cp rental_prop.service /etc/systemd/system/
+            sudo systemctl daemon-reload
+            echo -e "${GREEN}[INFO]${NC} Systemd service file installed/updated."
+        else
+            echo -e "${YELLOW}[WARNING]${NC} rental_prop.service file not found in repository"
+        fi
+
+        # Install/update nginx configuration
+        echo -e "${GREEN}[INFO]${NC} Installing/updating nginx configuration..."
+        if [ -f "nginx.conf" ]; then
+            sudo cp nginx.conf /etc/nginx/sites-available/rental
+            sudo ln -sf /etc/nginx/sites-available/rental /etc/nginx/sites-enabled/
+            sudo nginx -t && sudo systemctl reload nginx
+            echo -e "${GREEN}[INFO]${NC} Nginx configuration installed/updated."
+        else
+            echo -e "${YELLOW}[WARNING]${NC} nginx.conf file not found in repository"
+        fi
+
         # Stop the service
         echo -e "${GREEN}[INFO]${NC} Stopping rental_prop service..."
         sudo systemctl stop rental_prop || echo -e "${YELLOW}[WARNING]${NC} Service may not be running"
@@ -230,8 +251,8 @@ EOF
 
     if [ $? -eq 0 ]; then
         print_message "Deployment completed successfully!"
-        print_message "Application should be accessible at: http://$REMOTE_IP:5000"
-        print_message "You can also access it via hostname: http://$REMOTE_HOST:5000"
+        print_message "Application should be accessible at: http://$REMOTE_IP:6000"
+        print_message "You can also access it via hostname: http://$REMOTE_HOST:6000"
     else
         print_error "Deployment failed!"
         exit 1
