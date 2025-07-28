@@ -183,18 +183,18 @@ else
         git reset --hard HEAD
         git clean -fd
         
-        # Check current branch and switch to main if needed
+        # Check current branch and switch to target branch if needed
         CURRENT_PI_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-        if [ "$CURRENT_PI_BRANCH" != "main" ]; then
-            echo -e "${YELLOW}[WARNING]${NC} Pi is on '$CURRENT_PI_BRANCH' branch, switching to 'main' branch..."
+        if [ "$CURRENT_PI_BRANCH" != "$TARGET_BRANCH" ]; then
+            echo -e "${YELLOW}[WARNING]${NC} Pi is on '$CURRENT_PI_BRANCH' branch, switching to '$TARGET_BRANCH' branch..."
             git fetch origin
-            git checkout main || git checkout -b main origin/main || { echo -e "${RED}[ERROR]${NC} Failed to switch to main branch!"; exit 1; }
-            echo -e "${GREEN}[INFO]${NC} Successfully switched to 'main' branch."
+            git checkout $TARGET_BRANCH || git checkout -b $TARGET_BRANCH origin/$TARGET_BRANCH || { echo -e "${RED}[ERROR]${NC} Failed to switch to $TARGET_BRANCH branch!"; exit 1; }
+            echo -e "${GREEN}[INFO]${NC} Successfully switched to '$TARGET_BRANCH' branch."
         fi
         
-        echo -e "${GREEN}[INFO]${NC} Pulling latest changes from branch 'main'..."
-        git pull origin main || { echo -e "${RED}[ERROR]${NC} Git pull failed for branch 'main'!"; exit 1; }
-        echo -e "${GREEN}[INFO]${NC} Git pull from branch 'main' successful."
+        echo -e "${GREEN}[INFO]${NC} Pulling latest changes from branch '$TARGET_BRANCH'..."
+        git pull origin $TARGET_BRANCH || { echo -e "${RED}[ERROR]${NC} Git pull failed for branch '$TARGET_BRANCH'!"; exit 1; }
+        echo -e "${GREEN}[INFO]${NC} Git pull from branch '$TARGET_BRANCH' successful."
 
         # Fix permissions for static files
         echo -e "${GREEN}[INFO]${NC} Fixing static file permissions..."
@@ -230,8 +230,8 @@ EOF
 
     if [ $? -eq 0 ]; then
         print_message "Deployment completed successfully!"
-        print_message "Application should be accessible at: http://$REMOTE_IP:6000"
-        print_message "You can also access it via hostname: http://$REMOTE_HOST:6000"
+        print_message "Application should be accessible at: http://$REMOTE_IP:5000"
+        print_message "You can also access it via hostname: http://$REMOTE_HOST:5000"
     else
         print_error "Deployment failed!"
         exit 1

@@ -136,8 +136,8 @@ sudo journalctl -u rental_prop -f
 
 ## Access URLs
 After successful deployment, the application will be accessible at:
-- **By IP**: http://192.168.10.10:6000
-- **By hostname**: http://movingdb:6000
+- **By IP**: http://192.168.10.10:5000
+- **By hostname**: http://movingdb:5000
 - **Custom domain**: http://rental.box (via nginx proxy)
 
 ## Troubleshooting
