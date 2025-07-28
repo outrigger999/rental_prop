@@ -196,12 +196,48 @@ else
         git pull origin $TARGET_BRANCH || { echo -e "${RED}[ERROR]${NC} Git pull failed for branch '$TARGET_BRANCH'!"; exit 1; }
         echo -e "${GREEN}[INFO]${NC} Git pull from branch '$TARGET_BRANCH' successful."
 
-        # Fix permissions for static files
-        echo -e "${GREEN}[INFO]${NC} Fixing static file permissions..."
+        # Comprehensive fix for static file and nginx permissions
+        echo -e "${GREEN}[INFO]${NC} Applying comprehensive permission fixes..."
+        
+        # 1. Fix app directory permissions
+        echo -e "${GREEN}[INFO]${NC} Setting app directory ownership and permissions..."
+        sudo chown -R $(whoami):$(whoami) .
+        sudo chmod -R 755 .
+        
+        # 2. Fix static directory permissions with detailed logging
         if [ -d "static" ]; then
-            find static -type d -exec chmod 755 {} \;
-            find static -type f -exec chmod 644 {} \;
+            echo -e "${GREEN}[INFO]${NC} Setting static directory permissions..."
+            sudo find static -type d -exec chmod 755 {} \;
+            sudo find static -type f -exec chmod 644 {} \;
+            
+            # Extra permission check for CSS and JS files
+            echo -e "${GREEN}[INFO]${NC} Setting special permissions for CSS/JS files..."
+            sudo find static -name "*.css" -exec chmod 644 {} \;
+            sudo find static -name "*.js" -exec chmod 644 {} \;
+            
+            # Verify permissions were set
+            echo -e "${GREEN}[INFO]${NC} Verifying CSS file permissions:"
+            ls -la static/css/*.css
+            
             echo -e "${GREEN}[INFO]${NC} Static file permissions fixed."
+        else
+            echo -e "${RED}[WARNING]${NC} Static directory not found! Creating it..."
+            mkdir -p static/css
+            mkdir -p static/js
+            chmod -R 755 static
+        fi
+        
+        # 3. Update nginx configuration to ensure it has correct permissions
+        if [ -f "nginx.conf" ]; then
+            echo -e "${GREEN}[INFO]${NC} Updating nginx configuration..."
+            sudo cp nginx.conf /etc/nginx/sites-available/rental
+            sudo chmod 644 /etc/nginx/sites-available/rental
+            sudo ln -sf /etc/nginx/sites-available/rental /etc/nginx/sites-enabled/
+            
+            # Test and reload nginx
+            echo -e "${GREEN}[INFO]${NC} Testing nginx configuration..."
+            sudo nginx -t && sudo systemctl reload nginx
+            echo -e "${GREEN}[INFO]${NC} Nginx configuration updated and reloaded."
         fi
         
         # Generate deployment timestamp

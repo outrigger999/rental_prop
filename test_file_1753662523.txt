@@ -1,0 +1,4 @@
+DIRECT CONNECTION TEST
+Test ID: 1753662523
+Created: 2025-07-27 14:28:43
+This file was created by direct_test.sh
