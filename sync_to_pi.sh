@@ -203,6 +203,12 @@ else
             find static -type f -exec chmod 644 {} \;
             echo -e "${GREEN}[INFO]${NC} Static file permissions fixed."
         fi
+        
+        # Generate deployment timestamp
+        echo -e "${GREEN}[INFO]${NC} Generating deployment timestamp..."
+        CURRENT_TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S') (from sync_to_pi.sh)"
+        echo "$CURRENT_TIMESTAMP" > deployment_timestamp.txt
+        echo -e "${GREEN}[INFO]${NC} Timestamp generated: $CURRENT_TIMESTAMP"
 
         # Update dependencies if requested
         if [ "$UPDATE_CONDA" = "true" ]; then

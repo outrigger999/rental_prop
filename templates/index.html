@@ -10,7 +10,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Rental Properties</h1>
+        <header class="main-header">
+            <h1>Rental Properties</h1>
+            <div class="deployment-timestamp">
+                <strong>Last Updated:</strong> {{ deployment_timestamp }}
+            </div>
+        </header>
         <div class="action-bar">
             <a href="{{ url_for('add_property') }}" class="button"><i class="fas fa-plus-circle"></i> Add New Property</a>
             <a href="{{ url_for('export_data') }}" class="button secondary"><i class="fas fa-file-export"></i> Export Data</a>

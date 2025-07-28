@@ -39,6 +39,41 @@ body {
     box-shadow: var(--box-shadow);
 }
 
+/* Main header with deployment timestamp */
+.main-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--light-bg);
+}
+
+.deployment-timestamp {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(44, 62, 80, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(44, 62, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(44, 62, 80, 0);
+    }
+}
+
 /* Media queries for responsive container */
 @media (min-width: 576px) {
     .container {

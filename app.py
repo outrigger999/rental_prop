@@ -5,6 +5,7 @@ import csv
 import json
 from datetime import datetime
 import io
+import time
 
 app = Flask(__name__)
 DATABASE = 'rental_properties.db'
@@ -45,13 +46,32 @@ def init_db():
 # Initialize the database when the app starts
 with app.app_context():
     init_db()
+    
+# Deployment timestamp functionality
+TIMESTAMP_FILE = 'deployment_timestamp.txt'
+
+def get_deployment_timestamp():
+    """Read the deployment timestamp from file or return default message"""
+    try:
+        if os.path.exists(TIMESTAMP_FILE):
+            with open(TIMESTAMP_FILE, 'r') as f:
+                timestamp = f.read().strip()
+                if timestamp:
+                    return timestamp
+    except Exception:
+        pass
+    return "No deployment timestamp available"
 
 @app.route('/')
 def index():
     conn = get_db_connection()
     properties = conn.execute('SELECT * FROM properties').fetchall()
     conn.close()
-    return render_template('index.html', properties=properties)
+    
+    # Get the deployment timestamp
+    deployment_timestamp = get_deployment_timestamp()
+    
+    return render_template('index.html', properties=properties, deployment_timestamp=deployment_timestamp)
 
 @app.route('/search')
 def search():
