@@ -170,7 +170,10 @@ else
     print_message "Performing direct file transfer via rsync to ensure file consistency..."
     
     # Direct rsync transfer with proper permissions - IGNORE TIMESTAMPS to force transfer
-    rsync -avz --delete --ignore-times \
+    print_message "DEBUG: Executing rsync command:"
+    print_message "rsync -avz --delete --ignore-times --itemize-changes --chmod=D755,F644 --exclude 'venv' --exclude '__pycache__' --exclude '.git' --exclude '.conda' --exclude 'rental_properties.db' --exclude 'static/uploads' -e ssh '${LOCAL_DIR}' '${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR%.*/}'"
+    
+    rsync -avz --delete --ignore-times --itemize-changes \
         --chmod=D755,F644 \
         --exclude 'venv' \
         --exclude '__pycache__' \
