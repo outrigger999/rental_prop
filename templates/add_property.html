@@ -51,6 +51,7 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            cursor: zoom-in;
         }
         
         .image-placeholder {
@@ -84,7 +85,6 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
             position: relative;
             overflow: hidden;
         }
@@ -93,6 +93,15 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: cover;
+            cursor: zoom-in;
+        }
+        
+        .gallery-item i {
+            cursor: pointer;
+        }
+        
+        .zoomable-image {
+            cursor: zoom-in;
         }
         
         .modal {
@@ -140,6 +149,13 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: cover;
+            cursor: zoom-in;
+        }
+        
+        .help-text {
+            text-align: center;
+            color: #666;
+            margin-top: 5px;
         }
         
         .source-url {
@@ -302,32 +318,32 @@
                     <div class="gallery-container">
                         <div class="image-gallery">
                             <!-- Gallery Item 1 -->
-                            <div class="gallery-item" id="gallery_preview_1" onclick="document.getElementById('gallery_image_1').click()">
-                                <i class="fas fa-plus"></i>
+                            <div class="gallery-item" id="gallery_preview_1">
+                                <i class="fas fa-plus" onclick="document.getElementById('gallery_image_1').click()"></i>
                             </div>
                             <input type="file" id="gallery_image_1" name="gallery_image_1" accept="image/*" style="display: none;">
                             
                             <!-- Gallery Item 2 -->
-                            <div class="gallery-item" id="gallery_preview_2" onclick="document.getElementById('gallery_image_2').click()">
-                                <i class="fas fa-plus"></i>
+                            <div class="gallery-item" id="gallery_preview_2">
+                                <i class="fas fa-plus" onclick="document.getElementById('gallery_image_2').click()"></i>
                             </div>
                             <input type="file" id="gallery_image_2" name="gallery_image_2" accept="image/*" style="display: none;">
                             
                             <!-- Gallery Item 3 -->
-                            <div class="gallery-item" id="gallery_preview_3" onclick="document.getElementById('gallery_image_3').click()">
-                                <i class="fas fa-plus"></i>
+                            <div class="gallery-item" id="gallery_preview_3">
+                                <i class="fas fa-plus" onclick="document.getElementById('gallery_image_3').click()"></i>
                             </div>
                             <input type="file" id="gallery_image_3" name="gallery_image_3" accept="image/*" style="display: none;">
                             
                             <!-- Gallery Item 4 -->
-                            <div class="gallery-item" id="gallery_preview_4" onclick="document.getElementById('gallery_image_4').click()">
-                                <i class="fas fa-plus"></i>
+                            <div class="gallery-item" id="gallery_preview_4">
+                                <i class="fas fa-plus" onclick="document.getElementById('gallery_image_4').click()"></i>
                             </div>
                             <input type="file" id="gallery_image_4" name="gallery_image_4" accept="image/*" style="display: none;">
                             
                             <!-- Gallery Item 5 -->
-                            <div class="gallery-item" id="gallery_preview_5" onclick="document.getElementById('gallery_image_5').click()">
-                                <i class="fas fa-plus"></i>
+                            <div class="gallery-item" id="gallery_preview_5">
+                                <i class="fas fa-plus" onclick="document.getElementById('gallery_image_5').click()"></i>
                             </div>
                             <input type="file" id="gallery_image_5" name="gallery_image_5" accept="image/*" style="display: none;">
                         </div>
@@ -347,6 +363,7 @@
             <button type="button" class="button secondary" onclick="document.getElementById('map_image').click()" style="margin-top: 10px;">
                 <i class="fas fa-upload"></i> Upload Map Image
             </button>
+            <p class="help-text"><small>Click on any image to zoom</small></p>
             
             <!-- Form Actions -->
             <div class="form-actions" style="margin-top: 30px;">
@@ -377,6 +394,7 @@
                     // Create and add image element
                     const img = document.createElement('img');
                     img.src = e.target.result;
+                    img.classList.add('zoomable-image');
                     img.onclick = function() { showExpandedImage(e.target.result); };
                     preview.appendChild(img);
                 }
@@ -412,6 +430,16 @@
             modalImg.src = imgSrc;
         }
         
+        // Function to make any image zoomable
+        function makeImageZoomable(imgElement) {
+            if (imgElement) {
+                imgElement.classList.add('zoomable-image');
+                imgElement.onclick = function() {
+                    showExpandedImage(this.src);
+                };
+            }
+        }
+        
         // Close modal when clicking close button
         closeBtn.onclick = function() {
             modal.style.display = 'none';
@@ -432,6 +460,97 @@
                 window.open(url, '_blank');
             } else {
                 alert('Please enter a URL first');
+            }
+        });
+        
+        // Make all images zoomable on load
+        window.addEventListener('load', function() {
+            // Find all images in preview containers and make them zoomable
+            document.querySelectorAll('.image-preview-container img, .gallery-item img, .map-container img').forEach(function(img) {
+                makeImageZoomable(img);
+            });
+        });
+        
+        // Add paste event listeners for image containers
+        document.addEventListener('paste', function(event) {
+            // Check if the active element is an input or textarea - don't interfere with those
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    const blob = items[i].getAsFile();
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        // Determine where to place the image based on user focus or selection
+                        let targetContainer = null;
+                        
+                        // Check if cursor is near any of our image containers
+                        const mouseX = event.clientX;
+                        const mouseY = event.clientY;
+                        
+                        const containers = [
+                            document.getElementById('main_image_preview'),
+                            document.getElementById('map_preview')
+                        ];
+                        
+                        // Add gallery previews
+                        for (let j = 1; j <= 5; j++) {
+                            containers.push(document.getElementById(`gallery_preview_${j}`));
+                        }
+                        
+                        // Find closest container to paste coordinates
+                        containers.forEach(container => {
+                            if (container) {
+                                const rect = container.getBoundingClientRect();
+                                if (mouseX >= rect.left && mouseX <= rect.right && 
+                                    mouseY >= rect.top && mouseY <= rect.bottom) {
+                                    targetContainer = container;
+                                }
+                            }
+                        });
+                        
+                        // Default to main image if no container is focused/selected
+                        if (!targetContainer) {
+                            targetContainer = document.getElementById('main_image_preview');
+                        }
+                        
+                        // Clear placeholder
+                        targetContainer.innerHTML = '';
+                        
+                        // Create and add image element
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.classList.add('zoomable-image');
+                        img.onclick = function() { showExpandedImage(e.target.result); };
+                        targetContainer.appendChild(img);
+                        
+                        // If this is a gallery item, we need to transfer the data to the proper input
+                        if (targetContainer.id.startsWith('gallery_preview_')) {
+                            const galleryNum = targetContainer.id.split('_')[2];
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(blob);
+                            
+                            const fileInput = document.getElementById(`gallery_image_${galleryNum}`);
+                            fileInput.files = dataTransfer.files;
+                        } else if (targetContainer.id === 'main_image_preview') {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(blob);
+                            document.getElementById('main_image').files = dataTransfer.files;
+                        } else if (targetContainer.id === 'map_preview') {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(blob);
+                            document.getElementById('map_image').files = dataTransfer.files;
+                        }
+                    };
+                    
+                    reader.readAsDataURL(blob);
+                    event.preventDefault();
+                    break;
+                }
             }
         });
     </script>
