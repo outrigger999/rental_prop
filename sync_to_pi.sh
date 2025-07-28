@@ -197,8 +197,15 @@ else
         echo -e "${GREEN}[INFO]${NC} Git pull from branch '$TARGET_BRANCH' successful."
 
         # ---
-        # PERMISSIONS FIX: This block ensures static files and parent dirs are accessible to Nginx
-        # Based on proven fix from moving.box project
+        # CRITICAL PERMISSIONS FIX: This block ensures static files and parent dirs are accessible to Nginx
+        # 
+        # ROOT CAUSE: Directory permissions of 700 (drwx------) prevent www-data from traversing
+        # directories to access static files, causing 403 Forbidden errors.
+        # 
+        # SOLUTION: Set directory permissions to 755 (drwxr-xr-x) to allow www-data traversal
+        # 
+        # This fix was developed after extensive troubleshooting and MUST be preserved.
+        # Based on proven fix from moving.box project.
         # ---
         echo -e "${GREEN}[INFO]${NC} Fixing static and template file permissions..."
         

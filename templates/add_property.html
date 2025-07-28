@@ -7,86 +7,433 @@
     <title>Add New Property</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom styles for the new Add Property page layout */
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .form-container {
+                flex-direction: row;
+            }
+            
+            .form-left-column {
+                flex: 1;
+            }
+            
+            .form-right-column {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+            }
+        }
+        
+        .image-preview-container {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            border: 2px dashed #ccc;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .image-preview-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .image-placeholder {
+            text-align: center;
+            color: #999;
+        }
+        
+        .image-placeholder i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .gallery-container {
+            width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+            margin-top: 20px;
+            padding: 10px 0;
+        }
+        
+        .image-gallery {
+            display: inline-flex;
+            gap: 10px;
+        }
+        
+        .gallery-item {
+            width: 120px;
+            height: 100px;
+            border: 2px dashed #ccc;
+            border-radius: var(--border-radius);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gallery-item img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .map-container {
+            width: 100%;
+            height: 300px;
+            border: 2px dashed #ccc;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        .source-url {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .source-url:hover {
+            text-decoration: underline;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .file-input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .file-input-container label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .checkbox-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .checkbox-field {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .checkbox-field input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Add New Property</h1>
-        <form method="post">
-            <!-- Basic Property Information -->
-            <div class="form-row">
-                <div>
-                    <label for="property_type"><i class="fas fa-home"></i> Property Type:</label>
-                    <select id="property_type" name="property_type" required>
-                        <option value="">Select Type</option>
-                        <option value="Home">Home</option>
-                        <option value="Apartment">Apartment</option>
-                        <option value="Townhome">Townhome</option>
-                    </select>
+        <form method="post" enctype="multipart/form-data">
+            <div class="form-container">
+                <!-- Left Column - Property Details -->
+                <div class="form-left-column">
+                    <!-- Basic Property Information -->
+                    <div class="form-row">
+                        <div>
+                            <label for="property_type"><i class="fas fa-home"></i> Property Type:</label>
+                            <select id="property_type" name="property_type" required>
+                                <option value="">Select Type</option>
+                                <option value="Home">Home</option>
+                                <option value="Apartment">Apartment</option>
+                                <option value="Townhome">Townhome</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="price"><i class="fas fa-dollar-sign"></i> Price per month:</label>
+                            <input type="number" id="price" name="price" step="0.01" placeholder="Monthly rent" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Address (now optional) -->
+                    <div class="form-group">
+                        <label for="address"><i class="fas fa-map-marker-alt"></i> Address (optional):</label>
+                        <input type="text" id="address" name="address" placeholder="Full property address">
+                    </div>
+                    
+                    <!-- Source URL (new field) -->
+                    <div class="form-group">
+                        <label for="source_url"><i class="fas fa-link"></i> Source URL (optional):</label>
+                        <input type="url" id="source_url" name="source_url" placeholder="URL of listing">
+                        <small><a href="#" id="open_url" class="source-url">Open URL in browser</a></small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div>
+                            <label for="sq_ft"><i class="fas fa-ruler-combined"></i> Square Feet:</label>
+                            <input type="number" id="sq_ft" name="sq_ft" placeholder="Property size">
+                        </div>
+                        <div>
+                            <label for="num_bedrooms"><i class="fas fa-bed"></i> Bedrooms:</label>
+                            <select id="num_bedrooms" name="num_bedrooms">
+                                <option value="">Select Bedrooms</option>
+                                <option value="1">1 Bedroom</option>
+                                <option value="2">2 Bedrooms</option>
+                                <option value="3">3+ Bedrooms</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Amenities Section -->
+                    <h3><i class="fas fa-list-check"></i> Amenities</h3>
+                    <div class="checkbox-row">
+                        <div class="checkbox-field">
+                            <input type="checkbox" id="cat_friendly" name="cat_friendly" value="1">
+                            <label for="cat_friendly"><i class="fas fa-cat"></i> Cat Friendly</label>
+                        </div>
+                        <div class="checkbox-field">
+                            <input type="checkbox" id="air_conditioning" name="air_conditioning" value="1">
+                            <label for="air_conditioning"><i class="fas fa-snowflake"></i> Air Conditioning</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parking_type"><i class="fas fa-car"></i> Type of Parking:</label>
+                        <select id="parking_type" name="parking_type">
+                            <option value="">Select Parking Type</option>
+                            <option value="Off Street">Off Street Parking</option>
+                            <option value="On Street">On Street Parking</option>
+                            <option value="Garage">Garage</option>
+                            <option value="None">No Parking</option>
+                        </select>
+                    </div>
+
+                    <!-- Commute Information Section -->
+                    <h3><i class="fas fa-route"></i> Commute Information</h3>
+                    <div class="form-row">
+                        <div>
+                            <label for="commute_morning"><i class="fas fa-clock"></i> Morning Commute:</label>
+                            <input type="text" id="commute_morning" name="commute_morning" placeholder="e.g., 25 mins">
+                        </div>
+                        <div>
+                            <label for="commute_midday"><i class="fas fa-clock"></i> Midday Commute:</label>
+                            <input type="text" id="commute_midday" name="commute_midday" placeholder="e.g., 15 mins">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="commute_evening"><i class="fas fa-clock"></i> Evening Commute:</label>
+                        <input type="text" id="commute_evening" name="commute_evening" placeholder="e.g., 30 mins">
+                    </div>
                 </div>
-                <div>
-                    <label for="price"><i class="fas fa-dollar-sign"></i> Price per month:</label>
-                    <input type="number" id="price" name="price" step="0.01" placeholder="Monthly rent" required>
+                
+                <!-- Right Column - Images -->
+                <div class="form-right-column">
+                    <!-- Main Property Image -->
+                    <div class="file-input-container">
+                        <label><i class="fas fa-image"></i> Main Property Image:</label>
+                        <div class="image-preview-container" id="main_image_preview">
+                            <div class="image-placeholder">
+                                <i class="fas fa-home"></i>
+                                <p>Select main property image</p>
+                            </div>
+                        </div>
+                        <input type="file" id="main_image" name="main_image" accept="image/*" style="display: none;">
+                        <button type="button" class="button secondary" onclick="document.getElementById('main_image').click()">
+                            <i class="fas fa-upload"></i> Upload Main Image
+                        </button>
+                    </div>
+                    
+                    <!-- Property Image Gallery -->
+                    <h3><i class="fas fa-images"></i> Property Gallery</h3>
+                    <div class="gallery-container">
+                        <div class="image-gallery">
+                            <!-- Gallery Item 1 -->
+                            <div class="gallery-item" id="gallery_preview_1" onclick="document.getElementById('gallery_image_1').click()">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <input type="file" id="gallery_image_1" name="gallery_image_1" accept="image/*" style="display: none;">
+                            
+                            <!-- Gallery Item 2 -->
+                            <div class="gallery-item" id="gallery_preview_2" onclick="document.getElementById('gallery_image_2').click()">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <input type="file" id="gallery_image_2" name="gallery_image_2" accept="image/*" style="display: none;">
+                            
+                            <!-- Gallery Item 3 -->
+                            <div class="gallery-item" id="gallery_preview_3" onclick="document.getElementById('gallery_image_3').click()">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <input type="file" id="gallery_image_3" name="gallery_image_3" accept="image/*" style="display: none;">
+                            
+                            <!-- Gallery Item 4 -->
+                            <div class="gallery-item" id="gallery_preview_4" onclick="document.getElementById('gallery_image_4').click()">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <input type="file" id="gallery_image_4" name="gallery_image_4" accept="image/*" style="display: none;">
+                            
+                            <!-- Gallery Item 5 -->
+                            <div class="gallery-item" id="gallery_preview_5" onclick="document.getElementById('gallery_image_5').click()">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <input type="file" id="gallery_image_5" name="gallery_image_5" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <label for="address"><i class="fas fa-map-marker-alt"></i> Address:</label>
-            <input type="text" id="address" name="address" placeholder="Full property address" required>
-
-            <div class="form-row">
-                <div>
-                    <label for="sq_ft"><i class="fas fa-ruler-combined"></i> Square Feet:</label>
-                    <input type="number" id="sq_ft" name="sq_ft" placeholder="Property size">
-                </div>
-                <div>
-                    <label for="num_bedrooms"><i class="fas fa-bed"></i> Bedrooms:</label>
-                    <input type="number" id="num_bedrooms" name="num_bedrooms" placeholder="Number of bedrooms">
+            
+            <!-- Map Image Section -->
+            <h3><i class="fas fa-map"></i> Google Maps Route</h3>
+            <div class="map-container" id="map_preview">
+                <div class="image-placeholder">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <p>Select Google Maps route image</p>
                 </div>
             </div>
-
-            <!-- Amenities Section -->
-            <h3><i class="fas fa-list-check"></i> Amenities</h3>
-            <div class="checkbox-row">
-                <div class="checkbox-field">
-                    <input type="checkbox" id="cat_friendly" name="cat_friendly" value="1">
-                    <label for="cat_friendly"><i class="fas fa-cat"></i> Cat Friendly</label>
-                </div>
-                <div class="checkbox-field">
-                    <input type="checkbox" id="air_conditioning" name="air_conditioning" value="1">
-                    <label for="air_conditioning"><i class="fas fa-snowflake"></i> Air Conditioning</label>
-                </div>
-            </div>
-
-            <label for="parking_type"><i class="fas fa-car"></i> Type of Parking:</label>
-            <select id="parking_type" name="parking_type">
-                <option value="">Select Parking Type</option>
-                <option value="Off Street">Off Street Parking</option>
-                <option value="On Street">On Street Parking</option>
-                <option value="Garage">Garage</option>
-                <option value="None">No Parking</option>
-            </select>
-
-            <!-- Commute Information Section -->
-            <h3><i class="fas fa-route"></i> Commute Information</h3>
-            <div class="form-row">
-                <div>
-                    <label for="commute_morning"><i class="fas fa-clock"></i> Morning Commute:</label>
-                    <input type="text" id="commute_morning" name="commute_morning" placeholder="e.g., 25 mins">
-                </div>
-                <div>
-                    <label for="commute_midday"><i class="fas fa-clock"></i> Midday Commute:</label>
-                    <input type="text" id="commute_midday" name="commute_midday" placeholder="e.g., 15 mins">
-                </div>
-            </div>
-
-            <label for="commute_evening"><i class="fas fa-clock"></i> Evening Commute:</label>
-            <input type="text" id="commute_evening" name="commute_evening" placeholder="e.g., 30 mins">
-
+            <input type="file" id="map_image" name="map_image" accept="image/*" style="display: none;">
+            <button type="button" class="button secondary" onclick="document.getElementById('map_image').click()" style="margin-top: 10px;">
+                <i class="fas fa-upload"></i> Upload Map Image
+            </button>
+            
             <!-- Form Actions -->
-            <div class="form-actions">
+            <div class="form-actions" style="margin-top: 30px;">
                 <button type="submit"><i class="fas fa-plus-circle"></i> Add Property</button>
                 <a href="{{ url_for('index') }}" class="button secondary"><i class="fas fa-times-circle"></i> Cancel</a>
             </div>
         </form>
     </div>
+    
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="expandedImg">
+    </div>
+    
+    <script>
+        // Function to preview selected image
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Clear placeholder
+                    preview.innerHTML = '';
+                    
+                    // Create and add image element
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.onclick = function() { showExpandedImage(e.target.result); };
+                    preview.appendChild(img);
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Setup image preview for main image
+        document.getElementById('main_image').addEventListener('change', function() {
+            previewImage(this, 'main_image_preview');
+        });
+        
+        // Setup image preview for gallery images
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`gallery_image_${i}`).addEventListener('change', function() {
+                previewImage(this, `gallery_preview_${i}`);
+            });
+        }
+        
+        // Setup image preview for map image
+        document.getElementById('map_image').addEventListener('change', function() {
+            previewImage(this, 'map_preview');
+        });
+        
+        // Modal functionality
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('expandedImg');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        
+        function showExpandedImage(imgSrc) {
+            modal.style.display = 'flex';
+            modalImg.src = imgSrc;
+        }
+        
+        // Close modal when clicking close button
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+        
+        // Close modal when clicking outside the image
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Open source URL in new tab
+        document.getElementById('open_url').addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = document.getElementById('source_url').value;
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                alert('Please enter a URL first');
+            }
+        });
+    </script>
 </body>
 </html>
