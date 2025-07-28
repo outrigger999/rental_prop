@@ -196,38 +196,73 @@ else
         git pull origin $TARGET_BRANCH || { echo -e "${RED}[ERROR]${NC} Git pull failed for branch '$TARGET_BRANCH'!"; exit 1; }
         echo -e "${GREEN}[INFO]${NC} Git pull from branch '$TARGET_BRANCH' successful."
 
-        # Comprehensive fix for static file and nginx permissions
-        echo -e "${GREEN}[INFO]${NC} Applying comprehensive permission fixes..."
+        # ---
+        # PERMISSIONS FIX: This block ensures static files and parent dirs are accessible to Nginx
+        # Based on proven fix from moving.box project
+        # ---
+        echo -e "${GREEN}[INFO]${NC} Fixing static and template file permissions..."
         
-        # 1. Fix app directory permissions
-        echo -e "${GREEN}[INFO]${NC} Setting app directory ownership and permissions..."
-        sudo chown -R $(whoami):$(whoami) .
-        sudo chmod -R 755 .
-        
-        # 2. Fix static directory permissions with detailed logging
+        # Fix directory permissions (755 = rwxr-xr-x) for both static and templates
+        echo -e "${GREEN}[INFO]${NC} Setting directory permissions to 755..."
         if [ -d "static" ]; then
-            echo -e "${GREEN}[INFO]${NC} Setting static directory permissions..."
-            sudo find static -type d -exec chmod 755 {} \;
-            sudo find static -type f -exec chmod 644 {} \;
-            
-            # Extra permission check for CSS and JS files
-            echo -e "${GREEN}[INFO]${NC} Setting special permissions for CSS/JS files..."
-            sudo find static -name "*.css" -exec chmod 644 {} \;
-            sudo find static -name "*.js" -exec chmod 644 {} \;
-            
-            # Verify permissions were set
-            echo -e "${GREEN}[INFO]${NC} Verifying CSS file permissions:"
-            ls -la static/css/*.css
-            
-            echo -e "${GREEN}[INFO]${NC} Static file permissions fixed."
+            find static -type d -exec chmod 755 {} \; || { echo -e "${RED}[ERROR]${NC} Failed to set directory permissions!"; exit 1; }
         else
-            echo -e "${RED}[WARNING]${NC} Static directory not found! Creating it..."
+            echo -e "${YELLOW}[WARNING]${NC} Static directory not found! Creating it..."
             mkdir -p static/css
             mkdir -p static/js
             chmod -R 755 static
         fi
         
-        # 3. Update nginx configuration to ensure it has correct permissions
+        if [ -d "templates" ]; then
+            find templates -type d -exec chmod 755 {} \; || { echo -e "${RED}[ERROR]${NC} Failed to set directory permissions!"; exit 1; }
+        fi
+        
+        # Fix file permissions (644 = rw-r--r--) for both static and templates
+        echo -e "${GREEN}[INFO]${NC} Setting file permissions to 644..."
+        if [ -d "static" ]; then
+            find static -type f -exec chmod 644 {} \; || { echo -e "${RED}[ERROR]${NC} Failed to set file permissions!"; exit 1; }
+        fi
+        
+        if [ -d "templates" ]; then
+            find templates -type f -exec chmod 644 {} \; || { echo -e "${RED}[ERROR]${NC} Failed to set file permissions!"; exit 1; }
+        fi
+        
+        # Fix ownership for both static and templates - THIS IS CRITICAL
+        echo -e "${GREEN}[INFO]${NC} Setting correct ownership..."
+        sudo chown -R smashimo:www-data ~/rental_prop/static/ ~/rental_prop/templates/ || { echo -e "${RED}[ERROR]${NC} Failed to set ownership!"; exit 1; }
+        sudo chmod -R g+r ~/rental_prop/static/ ~/rental_prop/templates/ || { echo -e "${RED}[ERROR]${NC} Failed to set group read permissions!"; exit 1; }
+        
+        # Fix parent directory permissions - THIS IS CRITICAL FOR NGINX
+        echo -e "${GREEN}[INFO]${NC} Setting parent directory permissions..."
+        sudo chmod o+rx ~ || { echo -e "${RED}[ERROR]${NC} Failed to set home directory permissions!"; exit 1; }
+        sudo chmod o+rx ~/rental_prop || { echo -e "${RED}[ERROR]${NC} Failed to set project directory permissions!"; exit 1; }
+        
+        # Verify permissions were set correctly
+        echo -e "${GREEN}[INFO]${NC} Verifying permissions..."
+        
+        # Check static directory permissions
+        if [ -d "static" ]; then
+            STATIC_DIR_PERMS=$(ls -ld ~/rental_prop/static | awk '{print $1}')
+            if [[ "$STATIC_DIR_PERMS" != "drwxr-xr-x"* ]]; then
+                echo -e "${RED}[ERROR]${NC} Static directory permissions verification failed!"
+                echo -e "${RED}[ERROR]${NC} Current permissions: $STATIC_DIR_PERMS (should be drwxr-xr-x)"
+                exit 1
+            fi
+            
+            # Check CSS files
+            if [ -d "static/css" ] && [ -f "static/css/style.css" ]; then
+                CSS_FILE_PERMS=$(ls -l ~/rental_prop/static/css/style.css | awk '{print $1}')
+                if [[ "$CSS_FILE_PERMS" != "-rw-r--r--"* ]]; then
+                    echo -e "${RED}[ERROR]${NC} CSS file permissions verification failed!"
+                    echo -e "${RED}[ERROR]${NC} style.css permissions: $CSS_FILE_PERMS (should be -rw-r--r--)"
+                    exit 1
+                fi
+                echo -e "${GREEN}[INFO]${NC} CSS file permissions verified."
+                ls -la static/css/style.css
+            fi
+        fi
+        
+        # Update nginx configuration if it exists
         if [ -f "nginx.conf" ]; then
             echo -e "${GREEN}[INFO]${NC} Updating nginx configuration..."
             sudo cp nginx.conf /etc/nginx/sites-available/rental
@@ -239,6 +274,8 @@ else
             sudo nginx -t && sudo systemctl reload nginx
             echo -e "${GREEN}[INFO]${NC} Nginx configuration updated and reloaded."
         fi
+        
+        echo -e "${GREEN}[SUCCESS]${NC} Permissions and ownership fixed and verified."
         
         # Generate deployment timestamp
         echo -e "${GREEN}[INFO]${NC} Generating deployment timestamp..."
