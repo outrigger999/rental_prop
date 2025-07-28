@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Rental Property Tracker Sync Script
-# Version 1.0
+# Version 1.1 - With Direct File Transfer
 #
 # This script syncs the project files to the Raspberry Pi and restarts the service
 # It includes a dry-run option, better error handling, conda environment support,
@@ -154,11 +154,41 @@ else
     fi
 fi
 
-# --- Main Deployment via Git Pull on Pi ---
+# --- Direct File Transfer via rsync ---
 if [ "$DRY_RUN" = true ]; then
-    print_message "DRY RUN: Would execute Git pull and service restart on Pi"
+    print_message "DRY RUN: Would perform direct file transfer via rsync"
+    rsync -avzn --delete \
+        --chmod=D755,F644 \
+        --exclude 'venv' \
+        --exclude '__pycache__' \
+        --exclude '.git' \
+        --exclude '.conda' \
+        --exclude 'rental_properties.db' \
+        --exclude 'static/uploads' \
+        -e ssh "${LOCAL_DIR}" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR%.*/}"  # Remove trailing slash if present
 else
-    print_message "Pulling latest changes from branch '$TARGET_BRANCH', updating dependencies, and restarting service on $REMOTE_HOST..."
+    print_message "Performing direct file transfer via rsync to ensure file consistency..."
+    
+    # Direct rsync transfer with proper permissions
+    rsync -avz --delete \
+        --chmod=D755,F644 \
+        --exclude 'venv' \
+        --exclude '__pycache__' \
+        --exclude '.git' \
+        --exclude '.conda' \
+        --exclude 'rental_properties.db' \
+        --exclude 'static/uploads' \
+        -e ssh "${LOCAL_DIR}" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR%.*/}" || \
+        { print_error "Direct file transfer failed!"; exit 1; }
+    
+    print_message "Direct file transfer completed successfully."
+fi
+
+# --- Main Deployment Operations on Pi ---
+if [ "$DRY_RUN" = true ]; then
+    print_message "DRY RUN: Would execute service restart and configuration on Pi"
+else
+    print_message "Configuring services and restarting on $REMOTE_HOST..."
 
     ssh $REMOTE_USER@$REMOTE_HOST UPDATE_CONDA=$UPDATE_CONDA TARGET_BRANCH="$TARGET_BRANCH" CONDA_ENV="$CONDA_ENV" << 'EOF'
         # Define colors directly in the SSH session
@@ -175,26 +205,9 @@ else
         echo -e "${GREEN}[INFO]${NC} Changing to project directory ~/rental_prop..."
         cd ~/rental_prop || { echo -e "${RED}[ERROR]${NC} Could not cd to project directory!"; exit 1; }
 
-        # Explicitly tell Git to use the SSH key
-        export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa"
-
-        # Reset any local changes and pull latest from Git
-        echo -e "${GREEN}[INFO]${NC} Resetting local changes..."
-        git reset --hard HEAD
-        git clean -fd
-        
-        # Check current branch and switch to target branch if needed
-        CURRENT_PI_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-        if [ "$CURRENT_PI_BRANCH" != "$TARGET_BRANCH" ]; then
-            echo -e "${YELLOW}[WARNING]${NC} Pi is on '$CURRENT_PI_BRANCH' branch, switching to '$TARGET_BRANCH' branch..."
-            git fetch origin
-            git checkout $TARGET_BRANCH || git checkout -b $TARGET_BRANCH origin/$TARGET_BRANCH || { echo -e "${RED}[ERROR]${NC} Failed to switch to $TARGET_BRANCH branch!"; exit 1; }
-            echo -e "${GREEN}[INFO]${NC} Successfully switched to '$TARGET_BRANCH' branch."
-        fi
-        
-        echo -e "${GREEN}[INFO]${NC} Pulling latest changes from branch '$TARGET_BRANCH'..."
-        git pull origin $TARGET_BRANCH || { echo -e "${RED}[ERROR]${NC} Git pull failed for branch '$TARGET_BRANCH'!"; exit 1; }
-        echo -e "${GREEN}[INFO]${NC} Git pull from branch '$TARGET_BRANCH' successful."
+        # Skip Git operations - we already have the files from direct rsync
+        echo -e "${GREEN}[INFO]${NC} Using files from direct rsync instead of git pull"
+        # Note: This eliminates any issues where git pull might not update files as expected
 
         # ---
         # CRITICAL PERMISSIONS FIX: This block ensures static files and parent dirs are accessible to Nginx
@@ -286,7 +299,7 @@ else
         
         # Generate deployment timestamp
         echo -e "${GREEN}[INFO]${NC} Generating deployment timestamp..."
-        CURRENT_TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S') (from sync_to_pi.sh)"
+        CURRENT_TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S') (from sync_to_pi.sh with direct rsync)"
         echo "$CURRENT_TIMESTAMP" > deployment_timestamp.txt
         echo -e "${GREEN}[INFO]${NC} Timestamp generated: $CURRENT_TIMESTAMP"
 
